@@ -61,6 +61,16 @@ namespace Distance
         MyDistance operator "" _mi(long double d)
         {
             return MyDistance(1609.344*d);
+        }
+
+        MyDistance operator "" _soheil(unsigned long long int d)
+        {
+            return MyDistance(d*0.1);
+        } 
+
+        std::string operator "" _sam(const char* d , size_t)
+        {
+            return d;
         } 
 
     }
@@ -70,7 +80,8 @@ namespace Distance
 using namespace Distance::Unit;
 int main()
 {
-    
+    std::cout<<1_soheil<<"\n";
+    std::cout<<"saman"_sam<<"\n";
     std::cout<<"1_km: "<<1.0_km<<std::endl;
     std::cout<<"1_m: "<<1.0_m<<std::endl;
     std::cout<<"1_cm: "<<1.0_cm<<std::endl;

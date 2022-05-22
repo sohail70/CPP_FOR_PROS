@@ -98,6 +98,10 @@ Curiously enough, the automatic variable, n , in line 20 has the value 0 . n has
 an undefined value and therefore the program has undefined behavior. This
 will also hold for the variable mem of the class T2 as T2.mem returns an
 undefined value.
+
+
+
+
 */
 
 /*
@@ -146,7 +150,7 @@ int main()
 struct T1{};
 
 struct T2{
-    int mem; //! auto mem= 0 is an error --> the current standard forbids us to initialize non-constant members of a class with auto Therefore, we have to use an explicit type
+    int mem=0; //! auto mem= 0 is an error --> the current standard forbids us to initialize non-constant members of a class with auto Therefore, we have to use an explicit type
     
     public:
         T2(){}

@@ -113,6 +113,7 @@ struct X{
 int main()
 {
     int X::* p = &X::data; //P pointer point to the memeber variable, data.
+    
     X object;
     object.data = 2011;
     X* objptr = new X;
@@ -120,7 +121,7 @@ int main()
     X object2;
     object2.data =3000;
 
-    int k = object.*p; //*! It looks a bit weird: is it like that *p created for every instace of a class?!
+    int k = object.*p; //*! It looks a bit weird: is it like that *p created for every instace of a class?! --> I think you cant use that pointer without an object
     int soso = object2.*p;//*! WEIRD!
     int l = objptr->*p; 
     std::cout<<k<<" "<<l<<" "<<soso<<"\n";
