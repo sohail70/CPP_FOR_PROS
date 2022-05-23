@@ -59,4 +59,10 @@ Suppress methods: delete #
     ! can only be created on the heap.
 
 ! Apart from objects and pointers, delete is also applicable to functions.
+
+
+
+
+
+
 */
