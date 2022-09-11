@@ -7,6 +7,7 @@ example of how decltype can be used to automatically deduce the return type of a
 */
 #include<iostream>
 #include<typeinfo>
+#include<string>
 
 template<typename T1 , typename T2>
 auto add(T1 first , T2 second) ->decltype(first+second)
@@ -34,5 +35,5 @@ int main()
     std::cout<<add(1000LL,5)<<"\n";
     std::cout<<typeid(add(1000LL,5)).name()<<"\n";
 
-
+    std::string a = "1";
 }

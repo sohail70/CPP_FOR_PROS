@@ -44,6 +44,10 @@ decltype(auto) add(T1 fir, T2 sec){
 
 Note: 
 !When a function template multiple return statements, all of them must have the same type.
+
+
+good site for decltype(auto) vs auto https://stackoverflow.com/questions/21369113/what-is-the-difference-between-auto-and-decltypeauto-when-returning-from-a-fun
+read this too: https://stackoverflow.com/questions/3601602/what-are-rvalues-lvalues-xvalues-glvalues-and-prvalues
 */
 #include<iostream>
 
@@ -55,5 +59,4 @@ auto add(T1 fir, T2 sec){
 int main()
 {
     std::cout<<add(2,3)<<std::endl;
-
 }
