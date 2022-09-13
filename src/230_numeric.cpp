@@ -59,6 +59,11 @@ std::partial_sum , without callable, uses the following strategy:
 
 The challenging algorithm variation inner_product(InpIt, InpIt, OutIt, T,
 BiFun fun1, BiFun fun2) with two binary callables uses the following strategy:
+
+The second callable fun2 is applied to each pair of the ranges to generate the
+temporary destination range tmp , and the first callable is applied to each
+element of the destination range tmp for accumulating them and therefore
+generating the final result.
 */
 
 #include<array>
