@@ -84,7 +84,7 @@ int main()
     auto paStr = std::minmax_element(myStrings.begin(),myStrings.end());
     std::cout<<"std::minmax_element(myStrings.begin(),myStrings.end(): " <<"("<<*paStr.first<<" "<<*paStr.second<<"\n";
 
-    auto paStrAsInt = std::minmax_element(myStrings.begin(),myStrings.end());
+    //auto paStrAsInt = std::minmax_element(myStrings.begin(),myStrings.end(),[](std::string a, )); //fill this later
     std::cout<<"std::minmax_element(myStrings.begin(),myStrings.end(): "<<"("<<*paStr.first<<" "<<*paStr.second<<"\n";
 
     std::cout<<std::endl;
