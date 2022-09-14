@@ -152,7 +152,7 @@ int main()
     auto nullp = nullptr; //type std::nullptr_t
 
     bool b(nullptr);
-    std::cout<<std::boolalpha<<"b: "<<b<<"\n"; //what is boolalpha?
+    std::cout<<std::boolalpha<<"b: "<<b<<"\n"; //C++ manipulator boolalpha function is used to set the output stream to display bool values as the strings "true" or "false"
     auto val = 5;
     if(nullptr < &val)
     {

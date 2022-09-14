@@ -51,7 +51,7 @@ int main()
     std::cout<<"School day in seconds is :" << school_day_in_seconds.count()<<"\n";
     //Now that we have a variable with 18300 ticks (which we know semantically that's in seconds) we can change the unit of the ticks:
     std::chrono::duration<double , std::ratio<60,1>> school_day_in_mins = school_day_in_seconds;
-    std::chrono::duration<double,std::ratio<3600,1>> school_day_in_hours = school_day_in_seconds;
+    std::chrono::duration<double,std::ratio<3600,1>> school_day_in_hours = school_day_in_seconds; //har 3600 ta tick(sec) ye unit bere jolo
     std::chrono::duration<double,std::ratio<1,1000>> school_day_in_milliseconds = school_day_in_seconds;
 
     std::cout<<"School day in hour: "<<school_day_in_hours.count()<<"\n";
