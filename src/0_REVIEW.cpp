@@ -311,6 +311,8 @@ xchg(a, b);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///auto automatic type deduction.
+///There is a high potential for error if we keep defining types explicitly. Hence,
+///it’s better to leave it to the compiler. It’ll save us time as well.
 /*
 ! which is a big help,especially when we’re dealing with complex template expressions.
 ! It enables us to work with unknown types
@@ -384,6 +386,252 @@ int main()
     auto t2 = T2();
     std::cout<<::n<<" "<<n<<" "<<s<<" "<<T2().mem; //khoroji--> 0 0 "" 0 
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///Problems with refactoring data types
+/*
+When we replace the variable b with type int by a double, 10.5 , we have to
+adjust all the dependent types. That is laborious and dangerous. We have to
+use the right types and take care of narrowing and other intelligent
+phenomenons in C++
+
+*/
+int a2 = 5;
+double b2 = 10.5
+double sum2 = a2*b2*3;
+double res2 = sum2*10.5;
+
+/*
+The danger seen above is not present when using auto --> type tavasot compiler detect mishe --> az typeid(var).name() use kun
+*/
+auto a3 = 5;
+auto b3 = 10;
+auto sum3 = a3*b3*3.1f;  //tabdil be float mishe
+auto res3 = sum3*10;
+std::cout<<typeid(res3).name()<<"\n";
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///Replacing basic data types
+
+auto i = 5;
+auto& intRef = i; //int& ---> this is the auto type deduction, deduced by the compiler by seeing whats the value stored in it.
+auto* intPoint = &i; //int*
+const auto constInt = i; //const int
+static auto staticInt = 10; //static int
+
+//Copying a vector and the reference to it using the assignement operator =
+std::vector<int> myVec;
+auto vec = myVec; //std::vector<int>
+auto& vecRef = vec; //std::vector<int>&
+
+int myData[10];
+auto v1 = myData; //int*  
+auto& v2 = myData; //int (&)[10]  //*! What the hell is this? is it a reference to a pointer
+
+auto myFunc = func; //(int)(*)(int)   ---> function pointer
+auto& myFuncRef = func; //(int)(&)(int) --->reference to the function
+
+//Define a function pointer
+int (*myAdd1)(int,int) = [](int a ,int b){return a+b;};
+
+//Use type inference of the c++11 compiler
+auto myAdd2 = [](int a , int b){return a+b;}; //lambda expression whose return type is inferred by the c++ compiler since we have used the auto keyword
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+auto myInts = {1,2,3}; //---> use #include<initializer_list> if you don't want to use auto
+auto myIntBegin = myInts.begin(); //std::initializer_list<int>::iterator  
+
+std::map<int , std::string> myMap = { {1,std::string("one")} , {2,std::string("two")} };
+auto myMapBegin = myMap.begin(); //std::map<int, std::string>::iterator
+
+auto func = [](const std::string& a){return a;}; //std::function< std::string(const std::string&) > func= [](const std::string& a){ return a;}  ---> use #include<functinoal>
+//auto futureLambda   = std::async([](const std::string& s ) {return std::string("Hello ") + s;})  //std::future<std::string> futureLambda= std::async([](const std::string& s ) {return std::st
+auto begin = std::chrono::system_clock::now();// std::chrono::time_point<std::chrono::system_clock> begin = ...
+
+auto pa = std::make_pair(1,std::string("second")); //std::pair<int, std::string> pa = std::make_pair(1, std::string("second"));
+
+auto tup = std::make_tuple(std::string("first") , 4 ,1.1 , true , 'a'); //std::tuple<std::string, int, double, bool, char> tup = std::make_tuple(std::string("second"...
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// decltype vs auto
+/// ! decltype is used to determine the type of an expression or entity.            decltype(expression)
+/// ! We can use auto to create variables, but decltype returns the type of an expression containing variables.
+/// ! If the expression is an lvalue, decltype will return a reference to the data type to the expression
+/// ! If the expression is an rvalue, decltype will return the data type of the value
+///decltype is not used as often as auto . It is useful with templates that can deduce the type of a function.
+int i = 1998; //Rvalue
+decltype(i) i2 = 2011; //Same as int i2 = 2011
+//! the parentheses around i indicate that this is an expression instead of a variable. Hence, decltype computes int& instead of int .
+decltype((i)) iRef = i2; // (i) is an lvalue, reference returned
+std::cout<<iRef<<"\n";
+std::cout<<i2<<"\n";
+iRef = 2012;
+std::cout<<iRef<<"\n";
+std::cout<<i2<<"\n"; //iRef is a reference after all
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///decltype
+decltype(5) i = 5 ; //int
+int& intRef = i; //int&
+decltype(intRef) intRefD = intRef; //int&
+int* intPoint = &i; //int*
+decltype(intPoint) intPointD = intPoint; //int*
+const int constInt = i; //const int
+decltype(constInt) constIntD = constInt; //const int
+static int staticInt = 10; //static int
+decltype(staticInt) staticIntD = staticInt; //static int
+const std::vector<int> myVec;
+decltype(myVec) vecD = myVec; //const std::vector<int>
+auto myFunc = func; //(int) (*) (int , int )
+decltype(myFunc) myFuncD = myFunc; //(int)(*)(int , int)
+//define a function pointer
+int (*myAdd1)(int ,int) = [](int a , int b){return a+b;};
+//use type inference of the c++ compiler
+decltype(myAdd1) myAdd2 = [](int a ,int b){return a+b;};
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///automatically deduce the return type of a function --> decltype+auto
+template<typename T1 , typename T2>
+auto add(T1 fir , T2 sec) -> decltype(fir+sec)
+{
+    return fir+sec;
+}
+//! C++14 makes things even simpler. We don’t need to use decltype to deducethe function’s return type anymore. auto handles everything:
+template <typename T1, typename T2>
+auto add(T1 fir, T2 sec){
+    return fir + sec;
+}
+
+
+
+/*
+auto uses the same rules to determine
+the type as decltype
+
+Both declarations are identical:
+
+decltype(expr) v= expr;
+decltype(auto) v= expr;
+*/
+
+template <typename T1, typename T2>
+decltype(auto) add(T1 fir, T2 sec){
+    return fir + sec;
+}
+/*
+Note: 
+!When a function template multiple return statements, all of them must have the same type.
+*/
+
+
+#include<iostream>
+#include<typeinfo>
+#include<string>
+
+template<typename T1 , typename T2>
+auto add(T1 first , T2 second) ->decltype(first+second)
+{
+    return first+second;
+}
+int main()
+{
+    std::cout<<typeid(add(1,1)).name()<<"\n"; //returns a string representation of the return type.
+}
+///! compiler performs implicit casts during operations
+//When booleans and integers are operated together, the result is a cast to int .
+std::cout<<typeid(add(1,false)).name() <<std::endl;
+std::cout<<typeid(add('a',1)).name() <<"\n";
+std::cout<<typeid(add(false,false)).name()<<"\n";
+//From lines 19 to 20, we can see arithmetic operations that get implicitly cast to the double data type. The result of arithmetic operations between integers and doubles is a double.
+std::cout<<typeid(add(true,3.14)).name()<<"\n";
+std::cout<<typeid(add(1,4.0)).name()<<"\n";
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Explicit cast
+/*
+c cast ---> double myDouble{5.5};
+            int i = (int)myDouble
+We should avoid using C-casts since they present a number of problems.
+/! What is bad about the C-cast? We don’t see which cast is actually used. If we perform a C-cast, a combination of casts will be applied, if necessary. Roughly speaking, a C-cast starts with a static_cast , continues with a const_cast , and finally performs a reinterpret_cast .
+/! it is always better and safer to use named casts instead of C-casts.
+/!explicit is better than implicit.
+
+/! Let’s see what happens if we screw up the type system:
+*/
+double d = 2;
+auto p = (long*)&d;
+auto q = (long long*)&d;
+std::cout<<d<<" "<<*p<<" "<<*q<<"\n"; //2 4611686018427387904 4611686018427387904
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// Dynamic cast
+//! dynamic_cast converts a pointer or reference of a class to a pointer or reference in the same inheritance hierarchy.
+//! It can only be used with polymorphic classes. With dynamic_cast , we cast up, down, and across the inheritance hierarchy.
+//! Type information at run time is used to determine if the cast is valid.
+//! If the cast is not possible, we will get a nullptr in case of a pointer, and an std::bad_cast-exception in case of a reference.
+//! dynamic_cast is mostly used when converting from a derived class to a base class, but can also work the opposite operation.
+//! Do keep in mind that dynamic_cast only deals with pointers and references.
+// virtual haro bardari error mide chun fek kunam bayad polymorphic bashe vase dynamic_cast 
+class Account
+{
+    public:
+        virtual ~Account() = default;
+};
+class BankAccount: virtual public Account(){};
+class WireAccount: virtual public Account(){};
+
+class SavingsAccount: public BankAccount,public WireAccount{};
+class CheckingAccount: public BacnkAccount, public  WireAccount{};
+int main()
+{
+    Account* a = nullptr;
+    BankAccount* b = nullptr;
+    WireAccount* w = nullptr;
+    SavingsAccount* s = nullptr;
+    CheckingAccount c;
+    a = dynamic_cast<Account*>(&c); //upcast
+    a = &c; //upcast
+    b = dynamic_cast<BankAccount*>(a);//downcast
+    w = dynamic_cast<WireAccount*>(b); //crosscast
+    s = dynamic_cast<SavingsAccount*>(a);//downcast
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

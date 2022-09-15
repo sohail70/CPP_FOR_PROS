@@ -1,25 +1,14 @@
 #include<iostream>
-#include<string>
+#include<typeinfo>
 
-
-struct T1{};
-
-struct T2
+template<typename T1 , typename T2>
+auto add(T1 first , T2 second) 
 {
-    int mem = 0;
-    public:
-        T2(){}
-};
+    return first+second;
+}
 
-auto n =0;
 
 int main()
 {
-    using namespace std::string_literals;
-    auto n = 0;
-    auto s = ""s;
-    auto t1 = T1();
-    auto t2 = T2();
-    
-    std::cout<<::n<<" "<<n<<" "<<s<<" "<<t2.mem<<"\n";
+    std::cout<<typeid(add(false,false)).name()<<"\n";
 }
