@@ -1,14 +1,16 @@
 #include<iostream>
-#include<typeinfo>
 
-template<typename T1 , typename T2>
-auto add(T1 first , T2 second) 
+constexpr int addOne(int i)
 {
-    return first+second;
+    return i+1;
 }
 
 
 int main()
 {
-    std::cout<<typeid(add(false,false)).name()<<"\n";
+    constexpr int j = addOne(1);
+
+    constexpr int k =10;
+    std::cout<<addOne(k)<<"\n";
+    std::cout<<"\n";
 }

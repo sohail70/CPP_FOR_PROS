@@ -605,25 +605,261 @@ int main()
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///static_cast
+/*
+!It can only perform all the conversions that are well-defined by the compiler. For example, a string to integer cast won’t work.
+
+! It allows bidirectional conversion between related data types such as:
+! pointer types in class hierarchies
+! integrals and floating-point numbers
+! integrals and enumerations
+
+!static_cast cannot be used with polymorphic types.
+
+!Unlike dynamic_cast , a static_cast is performed during compile time.
+*/
+//we can see how static_cast supports up and down casting between pointers of the same class hierarchy.
+Account* a  = nullptr;
+BankAccount* b = nullptr;
+a = static_cast<Account*>(b); //upcast
+a = b ; //upcast
+
+b = static_cast<BankAccount*>(a); //downcast
+
+//An integer can be cast into an enum state using static_cast
+int i(2);
+Color col = static_cast<Color>(i);
+std::cout<<i<<"\n";
+std::cout<<col<<"\n";
+//A simple conversion from float to integer
+int i2 = static_cast<int>(3.14);
+std::cout<<i<<"\n";
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// const_cast
+/*
+!const_cast allows us to remove or add the const or volatile property from a variable.
+!const_cast is perhaps the most rarely used cast operator because it is undefined behavior to remove const or volatile from a variable if the variable was declared const or volatile in the first place.
+!This sort of behavior creates a discrepancy in the code since two pointers of different types are pointing to the same variable. Hence, it’s better to avoid such a practice.
+
+*/
+int i{2011};
+const int* constI = const_cast<const int*>(&i); //A const int pointer for an int
+int* nonConstI = const_cast<int*> (constI); //Casting to an int pointer
+*nonConstI = 9000;
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///reinterpret_cast
+/*
+reinterpret_cast allows us to convert a pointer of a particular type to a
+pointer of any other type, regardless of whether the types are related or
+not.
+It also allows conversion between a pointer and an integral.
+reinterpret_cast guarantees that if a pointer is cast into another type,
+casting it back would return the original value.
+The use of reinterpret_cast is not recommended as it does not take any
+safety measures before converting between types. This can result in
+faulty or accidental conversions that could harm the code.
+*/
+double* myDouble = new double(3.14);
+void* myVoid = reinterpret_cast<void*>(myDouble);
+double* myDouble1 = reinterpret_cast<double*>(myVoid); //original value (3.14) retrieved
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+
+/! FROM NOW ON BE MORE SPECIFIC AND MORE SUCCICNT 
+
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// TYPE INFORMATION 
+#include<iostream>
+#include<typeinfo> //type of the var or object at runtime
+
+int main()
+{
+
+    const std::typeinfo& t = typeid(Circle);  //const? because each type has a single_type_info
+    if(typeid(int) == typeid(long long))
+    {
+        std::cout<<"same"<<"\n";
+    }
+
+    int long long il{2011};
+    std::cout<<typeid(il).name()<<"\n"; //name method gives the name of the type
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///UNIFIED INITIALIZATION WITH {}
+std::string str{"my string"}; //direct initialization --> directly calls the constructor of the type
+std::string str = {"my String"}; //copy initialization ---> the value is created and implicitly converted into the type
+///Narrowing --> implicit conversion of arithmetic values from one type to another ---> dangerous --> data loss 
+int i1(3.14);//narrowing-->because 3.14 doesn't fit into the int type
+int i2(3.14);//narrowing
+///use {} to avoid narrowing
+int i1 {3.14}; //with gcc 6.1 and above you get an error and below that you get a warning.Compile the program in such a way that narrowing is an error
+int i2 = {3.14};
+
+char c1{97}; //no error because 97 fits into char type
+char c2 = {97}
 
 
+class MyClass{
+    public:
+        int x;
+        double y;
+};
+
+MyClass alsoClass{5,3.2};
+
+
+const float* pData = new const float[4]{1.5,4,3.5,4.5};
+
+std::vector<int> v{1}; //or v={1};
+std::unordered_map<std::string,int> um{{"dijkstra,1972"},{"scott",1976}};
+v.insert(v.end(),{99,88,-1});
+
+void getVector(const std::vector<int>& v)
+{
+
+}
+getVector({v[0],5,12,20});
+
+MyClass getT()
+{
+    return {1,1234};
+}
+
+auto a= {42}; //std::initializer_list<int>
+auto b{42};  //int
+auto c = {1,2}; //std::initializer_list<int>
+auto d {1,2} ;//Error
+
+#include<initializer_list>
+class MyData{
+    public:
+        MyData(int , int) { //classical constructor
+            std::cout << "MyData(int, int)" << std::endl;
+        }
+        MyData(std::initializer_list<int>) // sequence constructor: The sequence constructor is a constructor that takes an std::initalizer_list .
+        {
+            std::cout << "MyData(std::initializer_list<int>)" << std::endl;
+        }
+}
+
+MyData{1,2}; //Which constructor? sequence constructor has a higher probability
+MyData(1,2); //evoke the classical constructor explicitly
+
+
+#include<set>
+#include<unordered_set>
+//! Integers are inserted in numerical order and duplicate elements, such as
+//! 5 , are not inserted in the set.
+std::set<int> mySet{-10,5,1,4,5} ;
+//!The keys are not sorted. Duplicate keys are allowed in a std::unordered_multiset .
+std::unordered_multiset<int> myUnorderedMultiSet = {-10,5,1,4,5};
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///CONST
+//!Class methods can also be const but they can only be invoked by const instances of the class.
+int const* ip = &i; // you can not change the content i //fek kunam farghi ba const int* ip nadare
+int* const p =&i; //the pointer is const and you can not point to a different pointer
+const int* const p = &i; //both are const
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///CONSTEXPR --> expr to be evaluated at compile time -->Therefore, we can use the variable in contexts that require a constant expression, e.g., defining the size of an array. This has to be done at compile time.
+//!If we evaluate a variable at compile-time, the variable can only depend on values that can be evaluated at compile time.
+
+/// User-Defined types:
+
+#include<iostream>
+class me{
+    public:
+        constexpr me(){} //each used constructor (e.g of a base class) has to be a constexpr --> age constexpr nabashe error mide main vaghti My ro seda mizani
+};
+
+class My: public me{
+    public:
+        //each base object and each non-static member is initialized in the initialization list of the constructor, or directly in the class body--> so myVal has to be initialized in the constructor
+        constexpr My(double d):i(d) {}; //constexpr constructor can only be invoked with constant expressions.,cannot use exception handling.,has to be declared as default or delete or the function body must be empty (C++11).
+        constexpr double getVal(){return i;} //The user-defined type can have methods that may or may not be constant expressions.
+    private:
+        double i; //bayad dar constructor initlize beshe tavasote initializer list --> body of constructor must be empty
+};
+int main()
+{
+    constexpr My obj(2); //Instances of My can be instantiated at compile time.
+}
+
+/// constexpr Functions --> restrictions for c++11 ke dar c++14 behtar shodan va dar paeen migim: The function:  has to be non-virtual. can only have one return statement. must return a value. must have a constant return value. can only have a function body consisting of a return statement.
+constexpr auto res = constexprFunction() //constexpr functions are funcs that can be evaluated at compile time---> result is available at runtime  and stored in the ROM(read-only memory)
+constexpr int fac{int n}
+    {return n> 0 ? n* fac(n-1):1;} 
+constexpr int gcd(int a , int b)
+    {return (b==0) ? a: gcd(b,a%b);}
+//age constexprfunction ro ba non-constexpr value invoke kuni dar run-time run mishe na compile time -->use static_assert
+
+//c++14
+/*
+ constexpr functions in C++14:
+   can have variables that have to be initialized by a constant expression.
+   can have loops.
+   cannot have static or thread_local data.
+   can have conditional jump instructions or loop instructions.
+   can have more than one instruction.
+*/
+constexpr auto gcd (int a, int b)
+{
+    while(b != 0 )
+    {
+        auto  t=b;
+        b = a%b;
+        a = t;
+    }
+    return a;
+}
+int main()
+{
+    constexpr int i = gcd(11,121); //compile time calculation --> debugger bezari to gcd mibini ba F11 ham tosh nemire chun ghablan dar compile time mohasebe shode
+    int a = 11;
+    int b = 121;
+    //!The compiler would complain when we declare j as constexpr : constexpr int j = gcd(a, b) . The problem is that int a , and int b are not constant expressions.
+    int j =gcd(a,b); //run-time calculation because the int a,b are not constexpr 
+}
+
+
+//khodam???!!!
+#include<iostream>
+
+constexpr int addOne(int i)
+{
+    return i+1;
+}
+int main()
+{
+    constexpr int j = addOne(1); //in compile time mire
+
+    constexpr int k =10;
+    std::cout<<addOne(k)<<"\n"; // ama in run-time mire ? chera?
+    std::cout<<"\n";
+}
+
+//!at compile time, executed functions have to be pure functions
+///Pure functions at compile time, executed functions have to be pure functions. When we use this constexpr function at runtime the function stays pure.
+/*
+! Pure functions are functions that always return the same result when given    ---> like sin() sqrt() max() ---> impure funcs like rand() time() ...
+! the same arguments. Pure functions are like infinitely large tables from which
+! we get our value. The guarantee that an expression always returns the same
+! result when given the same arguments is called referential transparency.
+Pure functions have a lot of advantages:
+!   The function call can be replaced by the result.
+!   The execution of pure functions can automatically be distributed to other threads.
+!   Function calls can be reordered.
+!   They can easily be refactored.
+
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
