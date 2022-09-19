@@ -788,8 +788,9 @@ class My: public me{
 int main()
 {
     constexpr My obj(2); //Instances of My can be instantiated at compile time.
+    static_assert(obj.getVal()==2); //it will hold because instances of My class will be created at compile-time. ---> albate in error mide nemidonam chera va ba obj nemishe getVal ro call kard?????!!!!! dalilesh marbote be const boodan mishe chun age constexpr ro jash const ham bexari hamine dastan
 }
-
+//deghat: Streaming to std::cout is not allowed in a constexpr function context. In fact, only a limited set of things are.
 /// constexpr Functions --> restrictions for c++11 ke dar c++14 behtar shodan va dar paeen migim: The function:  has to be non-virtual. can only have one return statement. must return a value. must have a constant return value. can only have a function body consisting of a return statement.
 constexpr auto res = constexprFunction() //constexpr functions are funcs that can be evaluated at compile time---> result is available at runtime  and stored in the ROM(read-only memory)
 constexpr int fac{int n}
@@ -798,7 +799,7 @@ constexpr int gcd(int a , int b)
     {return (b==0) ? a: gcd(b,a%b);}
 //age constexprfunction ro ba non-constexpr value invoke kuni dar run-time run mishe na compile time -->use static_assert
 
-//c++14
+//c++14 --> The difference between ordinary functions and constexpr functions in C++14 is minimal
 /*
  constexpr functions in C++14:
    can have variables that have to be initialized by a constant expression.
@@ -819,9 +820,9 @@ constexpr auto gcd (int a, int b)
 }
 int main()
 {
-    constexpr int i = gcd(11,121); //compile time calculation --> debugger bezari to gcd mibini ba F11 ham tosh nemire chun ghablan dar compile time mohasebe shode
-    int a = 11;
-    int b = 121;
+    constexpr auto i = gcd(11,121); //compile time calculation --> debugger bezari to gcd mibini ba F11 ham tosh nemire chun ghablan dar compile time mohasebe shode
+    auto a = 11;
+    auto b = 121;
     //!The compiler would complain when we declare j as constexpr : constexpr int j = gcd(a, b) . The problem is that int a , and int b are not constant expressions.
     int j =gcd(a,b); //run-time calculation because the int a,b are not constexpr 
 }
@@ -858,15 +859,305 @@ Pure functions have a lot of advantages:
 
 */
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///ASSERTION
+constexpr int square(int x){return x*x;}
+constexpr int squareToSquare(int x){return square(square(x));}
+int main()
+{
+    static_assert(square(10)==100,"You calculated it wrong"); //static assert will hold because they can be evaluated at compile-time
+    static_assert(squareToSquare(10)==1000,"You calculated it wrong"); //it will hold
+    
+    constexpr int constExpr = square(10);
+    int arrayClassic[100];
+    int arrayWithConstExpression[constExpr];
+    int arrayWithConstExpressionFunction[square(10)]; //Notice that the input argument for this function call is constant.
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// VOLATILE --->typically used in embedded programming ---> volatile vs std::atomic --->What do the volatile keywords in C# and Java have in common with the volatile keyword in C++? Nothing--->volatile keyword in C# and java is std::atomic in c++ -->i.e. --> volatile has no multithreading semantics in c++
+/// volatile ---> for special objects on which optimized read or write operations are not allowed 
+/// std::atomic ---> atomic variables --> thread safe reading and writing
+/// you can change the variable withing your code but what if an external I/O event that tries to change the value of the variable --> so the obj can change independent of the program flow hence their values will be written directly in the main memory hence there is no optimized storing in cache
+
+
+//! So what happens when we declare the int variables as volatile ? I guess we
+//! know. The program has a data race on the variables, x and y . So, theprogram has undefined behavior and we cannot reason about x and y .
+#include<iostream>
+#include<thread>
+volatile int x = 0;
+volatile int y = 0;
+
+void writing()
+{
+    x = 2000;
+    y = 11;
+}
+void reading()
+{
+    std::cout<<y<<"\n";
+    std::cout<<x<<"\n";
+}
+
+int main()
+{
+    std::thread thread1(writing);
+    std::thread thread2(reading);
+    thread1.join();
+    thread2.join();
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///RVALUES AND LVALUES
+
+
+int lValue = 1998; // 1998 is an rvalue --> rvalue---> temporary objects without a name ---> they are stored in register for a short time ---> not in a memory
+lValue = 2011;
+
+MyData myData;
+MyData& lValueRef(myData); //lvalue ref
+MyData&& rValueRef(MyData()); //rvalue ref
+const MyData& constLvalueRef(MyData()); //const lvalue ref
+
+/*
+Lvalue ---can only be bound to ---> lvalue    
+rvalue ---can only be bound to-----> rvalue reference / const lValue ref --->binding of rvalue to rvalue ref has higher priority
+--->so --->int& a = 10 gives an error you can not bind rvalue to lvalue ref unless its const 
+
+Rvalue references: applications
+! Move semantics 
+    ! Cheap moving of objects instead of expensive copying.
+    ! No memory allocation and deallocation.
+    ! Non-copyable but movable objects can be transferred by value.
+! Perfect forwarding 
+    ! Forward an object without changing its rvalue/lvalue nature. This helps
+    ! in function templates.
+*/
+
+struct MyData{};
+
+int main()
+{
+    MyData myData;
+    MyData& lValueRef(myData);
+    MyData&& rValueRef(MyData()); //binding rvalue (MyData()) to rvalue ref
+    const MyData& constLvalueRef(MyData()); //binding an rvalue (MyData()) to const lvalue ref
+}
+
+
+
+
+
+
+
+#include<iostream>
+#include<algorithm>
+#include<string>
+
+struct MyData{};
+std::string function(const MyData &a)
+{
+    return "lvalue reference";
+}
+std::string function(MyData&&)
+{
+    return "rvalue reference";
+}
+int main()
+{
+    MyData myData;
+    std::cout<<function(myData)<<"\n"; //myData ke bere to function mishe lvalue reference because it has a name and an address
+    std::cout<<function(MyData())<<"\n";//MyData() is an rvalue reference since it does not have a name or an address. It is just a call to the default constructor of the struct MyData .
+    std::cout<<function(std::move(myData))<<"\n";//std::move(myData) creates an rvalue reference as well since we can neither determine the destination address of myData , nor the destination variable’s name.
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///COPY VS MOVE SEMANTICS --> move---> transfer ownership -> giving the object to someone else
+/*
+! 1. With the copy semantic, it is possible that a std::bad_alloc will be thrown
+! because our program is out of memory.
+! 2. The resource of the move operation is in a “valid but unspecified state”
+! afterward.
+
+! A class supports copy semantics if the class has a copy constructor and a copy
+! assignment operator.
+
+! A class supports move semantics if the class has a move constructor and a
+! move assignment operator.
+
+
+! If a class has a copy constructor, it should also have a copy assignment
+! operator. The same holds true for the move constructor and move assignment
+! operator.
+*/
+
+//copy
+string str1("ABCDEF");
+string str2;
+str2 = str1;
+
+//move
+string str1("ABCDEF");
+string str3;
+str3 = std::move(str1); //now string str1 is empty bu in copy semantics they both have the same content
+
+
+
+//swapping with move instead of copy semantic
+
+template<typename T>
+void swap(T& a , T& b)
+{
+    T tmp(a); //allocates tmp and eahc element from tmp. copy each eleemtn from a to tmp
+    a = b; //
+    b = tmp;
+}
+
+template<typename T>
+void swap(T& a , T& b)
+{
+    T tmp(std::move(a)); //redirects the pointer from tmp to to a
+    a = std::move(b);
+    b = std::move(tmp);
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// MOVE SEMANTICS --> Containers of the STL can have non-copyable elements. The copy semantic is the fallback for the move semantic.
+/*
+! Copy semantic is a fallback for move semantic. This means if we
+! invoke std::move with a non-moveable type, copy-semantic is used
+! because an rvalue can be bound to an rvalue reference and a constant
+! lvalue reference.
+*/
+
+/*
+std::move() --> Converts the type of its argument into a rvalue reference. --> It is a static_cast to a rvalue reference under the hood.
+std::move needs #include<utility> -->fek nakunam vali! kar mikune haminjoori
+
+
+static_cast<std::remove_reference<decltype(arg)>::type&&>(arg); 
+What is happening here?
+decltype(arg) : deduces the type of the argument.
+std::remove_reference<....> removes all references from the type ofthe argument.
+static_cast<....>&& adds two references to the type.
+*/
+
+
+/*
+STL #
+!Each container of the STL and std::string gets two new methods:
+!Move constructor
+!Move assignment operator
+!These new methods get their arguments as non-constant rvalue references.
+The classical copy constructor and copy assignment operator get their
+argument as a constant lvalue reference.
+
+Strategy of the move constructor #
+1. Set the attributes of the new object.
+2. Move the content of the old object.
+3. Set the old object in a valid state.
+
+*/
+//Example #
+vector{
+    vector(vector&& vec); //move constructor
+    vector& operator = (vector&& vec); //move assignment
+    vector(const vector& vec); //copy constructor
+    vector& operator = (const vector& vec); //copy assignment
+}
+
+
+
+/*
+
+User-defined data types #
+User-defined data types can support move and copy semantics as well.
+
+Example #
+class MyData{
+    MyData(MyData&& m) = default;
+    MyData& operator = (MyData&& m) = default;
+    MyData(const MyData& m) = default;
+    MyData& operator = (const myData& m) = default;
+};
+
+! The move semantic has priority over the copy semantic.
+
+The move constructor is created automatically if all attributes of the class
+and all base classes also have one move constructor.
+
+This rule holds for the big six:
+Default constructor
+Destructor
+Move and copy constructor
+Move and copy assignment operator
+*/
+
+
+//Copying and moving strings #
+#include<iostream>
+#include<string>
+#include<utility>
+
+int main()
+{
+    std::string str1{"ABCDEF"};
+    std::string str2;
+
+    str2 = str1; //copy semantic ---> copy assignment dar class string hast dg ke deep copy kune
+    
+    std::string str3;
+    str3 = std::move(str1); //move semantic ham dar class string hast --->  str1 tabdil mishe be "" va mire to str3
+}
+
+
+/*
+When we invoke move on an only copyable type, copy-semantic will kick
+in as fallback to move-semantic. The reason is that an rvalue is first
+bound to an rvalue reference and second to a const lvalue reference. The
+copy constructor and the copy assignment operator take constant lvalue
+references.
+*/
+#include<iostream>
+#include<algorithm>
+#include<vector>
+
+template<typename T>
+void swap (T& a , T&b)
+{
+    T tmp(a); //invokes the copy constructor
+    a = std::move(b); //invokes the copy assignment operator .so When we invoke move on an only copyable type, copy-semantic will kick in as fallback to move-semantic
+    b = std::move(tmp);//invokes the copy assignment operator. so When we invoke move on an only copyable type, copy-semantic will kick in as fallback to move-semantic
+}
+
+struct MyData{ //MyData doesn’t support move semantics. so When we invoke move on an only copyable type, copy-semantic will kick in as fallback to move-semantic
+    std::vector<int> myData;
+    MyData():myData({1,2,3,4,5}){}
+
+    //copy semantic
+    MyData(const MyData& m):myData(m.myData)
+    {
+        std::cout<<"copy constructor"<<"\n";
+    }
+    MyData& operator = (const MyData& m)
+    {
+        myData = m.myData;
+        std::cout<<"Copy assignment operator"<<"\n";
+        return *this;
+    }
+};
+
+int main()
+{
+    MyData a,b;
+    swap(a,b);
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
