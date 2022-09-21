@@ -1,41 +1,112 @@
-/*
-When we invoke move on an only copyable type, copy-semantic will kick
-in as fallback to move-semantic. The reason is that an rvalue is first
-bound to an rvalue reference and second to a const lvalue reference. The
-copy constructor and the copy assignment operator take constant lvalue
-references.
+/* PDF 45
+Exercise 2
+Extend BigArray with the move semantic and measure the performance once
+more. How big is the performance gain?
+
+In lines 37 – 41, we have defined the move constructor for BigArray . Note
+that in line 40, we are explicitly setting other.data_ to nullptr after the
+elements have been moved into the new object
+
+In lines 43 – 55, we have defined the move assignment operator, = , for
+BigArray . Note that in line 51, we are explicitly setting other.data_ to
+nullptr after the elements have been moved.
+
+As we can see, move semantic is significantly faster than the copy
+semantic since we are only redirecting the pointer to another vector and
+assigning the correct size . To be more precise, the costs of move
+semantics are independent of the size of the data structure. This does not
+hold true for the copy semantic. The bigger the user-defined data
+structure, the more expensive the memory allocation.
+
+
+good explanation for move : https://stackoverflow.com/questions/27497830/move-constructor-and-stdmove-confusion
 */
+
 #include<iostream>
-#include<algorithm>
+#include<chrono>
 #include<vector>
+#include<ostream>
 
-template<typename T>
-void swap (T& a , T&b)
-{
-    T tmp(a); //invokes the copy constructor
-    a = std::move(b); //invokes the copy assignment operator .so When we invoke move on an only copyable type, copy-semantic will kick in as fallback to move-semantic
-    b = std::move(tmp);//invokes the copy assignment operator. so When we invoke move on an only copyable type, copy-semantic will kick in as fallback to move-semantic
-}
 
-struct MyData{ //MyData doesn’t support move semantics. so When we invoke move on an only copyable type, copy-semantic will kick in as fallback to move-semantic
-    std::vector<int> myData;
-    MyData():myData({1,2,3,4,5}){}
 
-    //copy semantic
-    MyData(const MyData& m):myData(m.myData)
-    {
-        std::cout<<"copy constructor"<<"\n";
+
+class BigArray
+{   
+    public:
+        BigArray(size_t len):len_(len) , data_(new int[len]){}
+        
+    explicit BigArray(const BigArray& other): len_(other.len_), data_(new int[other.len_]){
+        std::cout << "Copy construction of " << other.len_ << " elements "<< std::endl;
+        std::copy(other.data_, other.data_ + len_, data_);
     }
-    MyData& operator = (const MyData& m)
-    {
-        myData = m.myData;
-        std::cout<<"Copy assignment operator"<<"\n";
+    BigArray& operator=(const BigArray& other){
+        std::cout << "Copy assignment of " << other.len_ << " elements "<< std::endl;
+        if (this != &other){
+            delete[] data_;
+            len_ = other.len_;
+            data_ = new int[len_];
+            std::copy(other.data_, other.data_ + len_, data_);
+        }
         return *this;
     }
+
+
+        //Move constructor
+        BigArray(BigArray&& other): len_(other.len_),data_(other.data_)
+        {
+            std::cout<<"Move Constructor of "<<other.len_<<" elements"<<"\n";
+            other.len_ = 0;
+            other.data_ = nullptr;
+        }
+        BigArray& operator = (BigArray&& other)
+        {
+            std::cout<<"Move assignment of"<< other.len_ <<" elements"<<"\n";
+            if(this != &other)
+            {
+                delete [] data_;
+
+                len_ = other.len_;
+                data_ = other.data_;
+
+                other.data_ = nullptr;
+                other.len_ = 0;
+            }
+            return *this;
+        }
+
+
+        friend std::ostream& operator<<(std::ostream& out, const BigArray& other)
+        {
+
+            out << other.data_<<"\n";
+            return out;
+        }
+
+        ~BigArray()
+        {
+            if (data_ != nullptr) delete[] data_;
+        }
+
+    private:
+        size_t len_;
+        int* data_;
+
 };
+
 
 int main()
 {
-    MyData a,b;
-    swap(a,b);
+    std::vector<BigArray> myVec;
+    myVec.push_back(BigArray(10));
+    myVec.push_back(BigArray(4));
+
+    std::vector<BigArray> myVec2 = std::move(myVec);
+    //myVec2 = ;
+    
+    for(std::vector<BigArray>::iterator i = myVec.begin() ; i != myVec.end() ; i++)
+    {
+        std::cout<<*i<<"\n";
+    }
+   std::cout<<"\n";
 }
+

@@ -18,6 +18,8 @@ semantics are independent of the size of the data structure. This does not
 hold true for the copy semantic. The bigger the user-defined data
 structure, the more expensive the memory allocation.
 
+
+good explanation for move : https://stackoverflow.com/questions/27497830/move-constructor-and-stdmove-confusion
 */
 
 #include<iostream>

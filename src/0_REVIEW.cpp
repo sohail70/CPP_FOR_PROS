@@ -1160,8 +1160,133 @@ int main()
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///BIG ARRAY WITH ONLY COPY-SEMANTIC SUPPORT
+#include<algorithm>
+#include<chrono>
+#include<iostream>
+#include<vector>
+
+class BigArray{
+    public:
+        BigArray(size_t len):len_(len),data_(new int[len]){}
+
+        BigArray(const BigArray& other): len_(other.len_) , data_(new int[other.len_])
+        {
+            std::cout<<"Copy constructor of"<< other.len_<<" elements"<<"\n";
+            std::copy(other.data_,other.data_ + len_ , data_);
+        }
+        BigArray& operator= (const BigArray& other)
+        {
+            std::cout<<"Copy Assignment " <<other.len_ <<" elements "<<"\n";
+            if(this != &other)
+            {
+                delete[] data_;
+
+                len_ = other.len_;
+                data_ = new int(len_);
+                std::copy(other.data_ , other.data_ + len_ , data_);
+            }
+            return *this;
+        }
+
+        ~BigArray()
+        {
+            if (data_ != nullptr) delete[] data_;
+        }
+    private:
+        size_t len_;
+        int* data_;
+};
+
+int main()
+{
+    std::vector<BigArray> myVec;
+    auto begin = std::chrono::system_clock::now();
+
+    myVec.push_back(BigArray(1000000000));
+    auto end = std::chrono::system_clock::now();
+    auto timeInSecond = std::chrono::duration<double>(end-begin).count();
+    std::cout<<timeInSecond<<"\n";
+}
+
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///BIG ARRAY WITH THE MOVE SEMANTIC
+#include<algorithm>
+#include<chrono>
+#include<iostream>
+#include<vector>
+
+class BigArray{
+    public:
+        BigArray(size_t len):len_(len),data_(new int[len]){}
+
+        BigArray(const BigArray& other): len_(other.len_) , data_(new int[other.len_])
+        {
+            std::cout<<"Copy constructor of"<< other.len_<<" elements"<<"\n";
+            std::copy(other.data_,other.data_ + len_ , data_);
+        }
+        BigArray& operator= (const BigArray& other) 
+        {
+            std::cout<<"Copy Assignment " <<other.len_ <<" elements "<<"\n";
+            if(this != &other) 
+            {
+                delete[] data_; 
+                len_ = other.len_;
+                data_ = new int(len_);
+                std::copy(other.data_ , other.data_ + len_ , data_);
+            }
+            return *this;
+        }
+
+        BigArray(BigArray&& other): len_(other.len_),data_(other.data_)
+        {
+            std::cout<<"Move Constructor of "<<other.len_<<" elements"<<"\n";
+            other.len_ = 0;
+            other.data_ = nullptr;
+        }
+
+        BigArray& operator=(BigArray&& other) //assignment operator vaghti seda zade mishe ke content ye obj ro bekhay dar ye EXISTING obj dg berizi vali move constructor ya copy constructor obj ro ijad mikunan (C c; c=c1  VS C c=c1) -->avali assignment seda mizane dovomi constructor
+        {
+            std::cout<<"Move assignment of"<< other.len_ <<" elements"<<"\n";
+            if(this != &other) //vase inke agar dar main eshtebahan benvisi --> dest = std::move(dest) oon vaght dochare memory leak mishim --> the cherno ro bebin
+            {
+                delete[] data_; //darim content ye object ro mirizim to ye obj dg pas on obj dg shayad az ghabl ye content ee dashte bashe vase hamin delete mikunim
+
+                len_ = other.len_;
+                data_ = other.data_;
+                other.len_ = 0;
+                other.data_ = nullptr;
+            }
+            return *this; 
+        }
+
+        ~BigArray()
+        {
+            if (data_ != nullptr) delete[] data_;
+        }
+    private:
+        size_t len_;
+        int* data_;
+};
+
+int main()
+{
+    std::vector<BigArray> myVec;
+    auto begin = std::chrono::system_clock::now();
+    
+    myVec.push_back(BigArray(1000000000));
+    auto end = std::chrono::system_clock::now();
+    auto timeInSecond = std::chrono::duration<double>(end-begin).count();
+    std::cout<<timeInSecond<<"\n";
+}
+
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
