@@ -1286,9 +1286,170 @@ int main()
 
 
 
+//MY EXAMPLE for move assignment
+#include<iostream>
+class Vector{
+    public:
+        Vector(int length):len_(length),data_(new int(length)) ,counter(0){};
+        void pushback(int d)
+        {
+            data_[counter] = d;
+            counter++;
+        }
 
+        //move constructor
+        Vector(Vector&& other)
+        {
+            len_ = other.len_;
+            counter = other.counter;
+            data_ = other.data_;
+
+            len_ = counter = 0;
+            data_ = nullptr;
+        }
+
+        Vector& operator=(Vector&& other)
+        {
+            delete[] data_;
+            if(this != &other)
+            {
+                len_ = other.len_;
+                counter = other.counter;
+                data_ = other.data_;
+
+                other.len_ = 0;
+                other.counter = 0;
+                other.data_ = nullptr;
+            }
+            return *this;
+        }
+
+        friend std::ostream& operator<<(std::ostream& out , Vector& vec)
+        {
+            for(int i = 0 ; i<vec.len_ ; i++)
+                std::cout<<vec.data_[i]<<"\n";
+            return out;
+        }
+        ~Vector() = default;
+
+    private:
+        size_t len_;
+        int counter;
+        int* data_;
+};
+
+int main()
+{
+    Vector myVec(5);
+    myVec.pushback(2);
+    myVec.pushback(3);
+    std::cout<<"myVec: \n"<<myVec<<"\n";
+    std::cout<<"\n";
+
+    Vector myVec2(5);
+    myVec2 = std::move(myVec);
+    std::cout<<"myVec: \n"<<myVec<<"\n";
+    std::cout<<"myVec2: \n"<<myVec2<<"\n";    
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///PERFECT FORWARDING
+//! If a function template forwards its arguments without changing their
+//! lvalue or rvalue characteristics, we call it perfect forwarding.
+/* A perfect factory method 
+function which:
+! takes an arbitrary number of arguments.
+! accepts lvalues and rvalues as arguments.
+! forwards its arguments in the same way as the underlying constructor.
+*/
+
+#include <iostream>
+template <typename T,typename Arg>
+T create(Arg& a){ //Aya in khoobe? No ---> chun rvalue nemitone tosh biad --> int myFive = create<int>(5); in error mide --> const esh kunim chi? bazam khoob nist chun onvaght argument haro nemitoonim taghir bedim? che kunim? overload kuni bara const va non-const ke be tedad arg ha 2*arg+1 ta overload mikhay? rah hal dg chie? std::forward
+    return T(a);
+}
+/*
+
+! The (Arg&& a) universal reference in line 4 is a powerful
+! reference that can bind lvalues or rvalues. Sometimes the term perfect
+! forwarding reference is used for this special reference.
+! To achieve perfect forwarding, we have to combine a universal reference with std::forward
+! std::forward<Arg>(a) returns the underlying type of a ,
+! because a is a universal reference. We can think of std::forward as a
+! conditional move operation.
+! When the argument a is an rvalue, std::forward moves its argument. When
+! the argument a is an lvalue, it copies the argument. Therefore, an rvalue
+! remains an rvalue.
+*/
+#include<iostream>
+template <typename T , typename Arg>
+T create (Arg&& a)
+{
+    return T(std::forward<Arg>(a));
+}
+
+
+
+/*
+! Variadic Templates are templates that can get an arbitrary number of
+! arguments. That is exactly the feature missing from our current perfect
+! factory method.
+The three dots, in lines 5 – 7, are the so-called parameter pack. 
+! If the three dots (also called ellipsis) are on the left of Args , the parameter pack will be
+! packed; if they are on the right of arg , the parameter pack will be unpacked.
+In particular, the three dots in line 7 ( std::forward<Args>(args)... ) initiate
+each constructor call that performs perfect forwarding, and the result is
+impressive. Now, we can invoke the perfect factory method without any
+arguments (line 38) or with three arguments (line 41).
+*/
+#include<iostream>
+#include<string>
+#include<utility>
+
+
+template<typename T , typename ... Args>
+T create(Args&& ... args)
+{
+    return T(std::forward<Args>(args)...);
+}
+
+struct MyStruct{
+    MyStruct(int i, double d , std::string s){}
+};
+
+int main()
+{
+    //lvalue
+    int five = 5;
+    int myFive = create<int>(five);
+    std::cout<<myFive<<"\n";
+
+    std::string str{"lValue"};
+    std::string str2 = create<std::string>(str);
+    std::cout<<str2<<"\n";
+
+    //rValue
+    int myFive2 = create<int>(5);
+    std::cout<<myFive2<<"\n";
+
+    std::string str3 = create<std::string>(std::string("Rvalue"));
+    std::cout<<str3<<"\n";
+
+    std::string str4 = create<std::string>(std::move(str3));
+    std::cout<<str4<<"\n";
+
+    //Arbitrary number of arguments
+    double doub = create<double>();
+    std::cout<<doub<<"\n";
+    MyStruct myStr = create<MyStruct>(2011,3.14,str4);
+
+    typedef std::vector<int> IntVec;
+    IntVec intVec = create<IntVec>(std::initializer_list<int>({1,2,3,4,5}));
+    for (auto i = intVec.begin() ; i != intVec.end() ; ++i)
+        std::cout<<*i<<"\n";
+
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
