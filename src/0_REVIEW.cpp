@@ -1467,8 +1467,7 @@ double* d = new double(10.0); //The arguments in the brackets go directly to the
 Point* p = new Point(1.0,2.0); //If the class of dynamically created objects is part of a type hierarchy, more constructors are invoked.
 double* d = new double[5]; //new[] allows us to allocate memory to a C array. 
 Point* p  = new Point[10]; //The class of the allocated object must have a default constructor. The default constructor will be invoked for each element of the C array.
-
-
+double* myDoubleArray = new double[2]{1.1,1.2};
 //placement new --> ! The header, <new> , is necessary. Can be overloaded on a class basis or globally.
 /*
 from stackoverflow-->Nothing in C++ prevents standard headers from including other standard headers. So if you include any standard header you might conceivably indirectly include all of them. However, this behaviour is totally implementation dependent, and if you need the features of a specific header you should always explicitly include it yourself.
@@ -1586,7 +1585,330 @@ int main()
     std::cout<<"end"<<"\n";
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// RAII ---> Resource acquisition is initialization 
+/*
+
+! Probably the most important idiom in C++ says that a resource should be acquired in the
+! constructor of the object and released in the destructor of the object. The key
+! is that the destructor will automatically be called if the object goes out of
+! scope. ---> In Java or Python ( __del__ ), we have a destructor but not the guarantee ---> But in C++, we are safe.
+*/
+#include<iostream>
+#include<new>
+#include<string>
+
+class ResourceGuard
+{
+    public:
+        ResourceGuard(const std::string& res): resource(res)
+        {
+            std::cout<<"acquire the " <<resource <<" . "<<"\n"; 
+        }
+        ~ResourceGuard()
+        {
+            std::cout<<"Release the "<<resource<<" . "<<"\n";
+        }
+
+    private:
+        const std::string resource;
+};
+
+int main()
+{
+    ResourceGuard resGuard1{"MemoryBlock1"}; //acquire the MemoryBlock1 . 
+    std::cout<<"\n Before local scope" <<"\n";
+    {
+        ResourceGuard resGuard2{"MemoryBlock2"}; //acquire the MemoryBlock2 . 
+    }//Release the MemoryBlock2 . 
+
+
+    std::cout<<"after local scope" <<"\n";
+    std::cout<<"\nBefore try-catch block"<<"\n";
+    try{
+        ResourceGuard resGuard3{"MemoryBlock3"};//acquire the MemoryBlock3 . 
+    }//Release the MemoryBlock3 . 
+    catch(const std::bad_alloc& e)
+    {
+        std::cerr<<e.what()<<"\n";
+    }
+    std::cout<<"after try-catch block"<<"\n";
+}//Release the MemoryBlock1 . 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///OVELOADING NEW AND DELETE --> The key question is, does there need to be a corresponding delete for each new call?
+/*
+4 variations of new operator in C++
+! It’s quite convenient and sufficient to overload only version 1 because
+! versions 2 - 4 use version 1:
+*/
+void* operator new(std::size_t count); //throw std::bad_alloc exception if they can not provide the necessary memory
+void* operator new[](std::size_t count); //throw std::bad_alloc exception if they can not provide the necessary memory
+void* operator new(std::size_t count , const std::nothrow_t& tag); //returns nullptr if they can not provide the necessary memory
+void* operator new[](std::size_t count, const std::nothrow_t& tag); //returns nullptr if they can not provide the necessary memory
+
+
+/*
+C++ offers six variations for the delete operator:
+! According to the properties of new , it is sufficient to overload delete for the
+! first variant because the remaining 5 use void operator delete(void* ptr) as
+! a fallback.
+*/
+void operator delete (void* ptr);
+void operator delete[](void* ptr);
+void operator delete (void* ptr, const std::nothrow_t& tag);
+void operator delete[](void* ptr, const std::nothrow_t& tag);
+void operator delete (void* ptr, std::size_t sz);
+void operator delete[](void* ptr, std::size_t sz);
+
+
+
+//! WRONG APPROACH---> because we didn't clear everything 
+#ifndef MY_NEW
+#define MY_NEW
+
+#include<cstdlib>
+#include<iostream>
+#include<new>
+static std::size_t alloc{0};
+static std::size_t dealloc{0};
+
+void* operator new(std::size_t sz){
+    alloc+=1;
+    return std::malloc(sz);
+}
+
+void operator delete(void* ptr) noexcept{
+    dealloc+=1;
+    std::free(ptr);
+}
+void getInfo()
+{
+    std::cout<<"\n";
+    std::cout<<"Num of allocations: "<<alloc<<"\n";
+    std::cout<<"Num of deallocations: "<<dealloc<<"\n";
+    std::cout<<"\n";
+}
+
+#endif
+
+
+class MyClass{
+    float* p= new float[100];
+};
+
+class MyClass2{
+    int five= 5;
+    std::string s= "hello";
+};
+
+int main(){
+    int* myInt= new int(1998);
+    double* myDouble= new double(3.14);
+    double* myDoubleArray= new double[2]{1.1,1.2};
+    MyClass* myClass= new MyClass;
+    MyClass2* myClass2= new MyClass2;
+    
+    delete myDouble;
+    delete [] myDoubleArray;
+    delete myClass;
+    delete myClass2;
+    getInfo();
+}
+
+
+//! How to see that we did not clear everything? --->The key idea is to use the static array myAlloc  to keep track of the addresses of all std::malloc  and std::free  invocations
+
+
+#include<algorithm>
+#include<cstdlib>
+#include<iostream>
+#include<new>
+#include<string>
+#include<array>
+
+int const MY_SIZE = 10;
+
+std::array<void* , MY_SIZE> myAlloc{nullptr};
+
+void* operator new(std::size_t sz)
+{
+    static int counter{};
+    void* ptr = std::malloc(sz);
+    myAlloc.at(counter++) = ptr;
+    std::cerr<<ptr<<" "<<sz<<std::endl;
+    return ptr;
+}
+
+void operator delete(void* ptr) noexcept
+{
+    auto ind = std::distance(myAlloc.begin(),std::find(myAlloc.begin(),myAlloc.end(),ptr));
+    myAlloc[ind] = nullptr;
+    std::free(ptr);
+}
+
+
+void getInfo()
+{
+    std::cout << std::endl;
+    std::cout << "Not deallocated: " << std::endl;
+    for (auto i: myAlloc){
+        if (i != nullptr ) std::cout << " " << i << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+
+
+class MyClass{
+    float* p= new float[100]; //pointer is 8 bytes so p is 8 bytes and the whole class needs an 8 bytes then there is a new float[100] which is 100*4bytes=400bytes ---> and this is the one that leaks!
+};
+
+class MyClass2{
+    int five= 5;
+    std::string s= "hello";
+};
+
+int main(){
+    int* myInt= new int(1998); //We forgot to delete this
+    double* myDouble= new double(3.14);
+    double* myDoubleArray= new double[2]{1.1,1.2};
+    MyClass* myClass= new MyClass; //this class has a new inside of it which leads to 400bytes of memory leak
+    MyClass2* myClass2= new MyClass2;
+    
+    delete myDouble;
+    delete [] myDoubleArray;
+    delete myClass;
+    delete myClass2;
+    getInfo();
+}
+
+/*
+The program is not beautiful for two reasons. First, we statically allocated the
+memory for std::array . Second, we want to know which object was not
+released. In the next lesson, we will solve both issues. --> see pdf 55 or 51_overlo...cpp ---> it was not necessary for me to dig deeper into this
+*/
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///FUNCTION DECLARATION
+/*
+A function can accept values, pointers, or references.
+Functions can be static, and their return values can be const or
+volatile .
+! A function makes a copy of its arguments. So by default, the original
+! variables are not altered outside the function scope. In order to modify
+! them, the function must take them by reference, as is done in line 3
+! above.
 
+*/
+//Alternative function syntax using auto and arrow syntax --> As we’ll see in the future, the new syntax allows us to make lambda functions.
+//auto func(para) -> returntype {functionbody}
+auto sum(int a , int b) -> int{return a+b;} //int sum(int a , int b) {return a + b;} //Old syntax
+
+//default arguments by using =
+
+bool isTempOk(const int , const int low = 20 , const int high = 50); //default value for low and high are 20 and 50 respectively
+
+/*
+in a function call, values are assigned from left to right.
+! The parameters that have default arguments must be placed at the end. In
+! other words, they must be on the right end of the list of parameters.
+*/
+#include<iostream>
+
+bool isTempOK(const int temp , const int low = 20 , const int high = 50)
+{
+    return (low<temp) && (temp<high);
+}
+
+int main()
+{
+    std::cout<<std::boolalpha<<std::endl;
+
+    std::cout<<isTempOK(20)<<"\n"; //temp =20 mishe
+    std::cout<<isTempOK(30)<<"\n"; //temp = 30 mishe
+    std::cout<<isTempOK(50)<<"\n"; //temp = 50 mishe
+    std::cout<<isTempOK(30,30)<<"\n"; //temp =30 low = 30
+    std::cout<<isTempOK(50,30,100)<<"\n"; // temo =50 low = 30 high = 100
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//FUNCTION OVERLOADING -->  This way, functions with different parameters can coexist with the same name. --> hata ba tedad argument haye mokhtalef ham mitonim overload kunim yani ye min benevisim 4 ta arg vorodi begire
+/*
+Reason?
+what would happen if we were running a large scale application that
+needs to support a variety of similar functions?
+It would be impractical to remember the names of all unique functions --> so overload ---> for simplicity and readability
+*/
+
+#include<iostream>
+#include<string.h>
+
+const char* min(const char* s , const char* t)
+{
+    return(strcmp(s,t)<0) ? s:t;
+}
+float min(float x , float y)
+{
+    return (x<y) ? x:y;
+}
+
+int main()
+{
+    const char* s = min("abc","xyz");
+    float f = min(4.4f , 1.23f);
+    int f2 = min(2011,2014); //int implicitly tabdil mishe be float va error nemide inja va bad az function dobare implicitly convert mishe be int ta bere to f2
+    //float f3 = min("abc" , 1.23f); //vase in overload nadarim ke ino handle kune pas error mide
+
+    std::cout<<s<<"\n";
+    std::cout<<f<<"\n";
+    std::cout<<f2<<"\n";
+}
+
+/*
+! Another thing to keep in mind is that the compiler ignores references when
+! overloading functions. For example, min(int x, int y) is the same as min(int
+! &x, int &y) .
+
+! Furthermore, the const and volatile qualifiers are also ignored. min(int x,
+! int y) is the same as min(volatile int x, volatile int y) . However,
+! min(const int& x, const int& y) is a different overloading function as the
+! const keyword applies to int but not to the reference property.
+*/
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
