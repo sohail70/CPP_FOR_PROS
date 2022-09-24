@@ -1,44 +1,56 @@
 #include<iostream>
-#include<string>
-#include<utility>
-
-
-template<typename T , typename ... Args>
-T create(Args&& ... args)
+void *operator new ( size_t size , bool Alloc )
 {
-    return T(std::forward<Args>(args)...);
+    if ( Alloc )
+        return NULL;
+    else
+    {
+        try
+        {
+            void *Memory    =    ::operator new ( size );
+            return Memory;
+        }
+        catch ( std::bad_alloc )
+        {
+            return NULL;
+        }
+    }
+    return NULL;
 }
+void    SimpleFunction ( int MemCounter , bool AllFail )
+{
 
-struct MyStruct{
-    MyStruct(int i, double d , std::string s){}
-};
+    int LocalCounter = 0;
 
+    char *Mem1 = new ( ( MemCounter == LocalCounter ++ ) || AllFail ) char [32];
+    if ( Mem1 != NULL )
+        strcpy ( Mem1 , "First Memory" );
+
+    char *Mem2 = new ( ( MemCounter == LocalCounter ++ ) || AllFail ) char [ 32 ];
+    if ( Mem2 != NULL )
+        strcpy ( Mem2 , "Second Memory" );
+
+    int NumTimesLoop    =    10;
+    int LoopCounter     =    0;
+    
+    //    Create a Variable that will be allocate Inner Memory
+    char **InnerMemory = new ( ( MemCounter == LocalCounter ++ ) 
+                             || AllFail ) char * [ NumTimesLoop ];
+    
+    //    Loop through and allocate the memory required    
+    for ( LoopCounter = 0; LoopCounter < NumTimesLoop ; LoopCounter ++ )
+    {
+        InnerMemory [ LoopCounter ] = new ( ( MemCounter == LocalCounter ++ ) 
+                                                   || AllFail ) char [ 32 ];
+    }
+
+}
 
 int main()
 {
-    //lvalue
-    int five = 5;
-    int myFive = create<int>(five);
-    std::cout<<myFive<<"\n";
+    for ( int counter = 0; counter < 12; counter ++ )
+        SimpleFunction ( counter , false );
+    SimpleFunction ( -1 , true );
 
-    std::string str{"lValue"};
-    std::string str2 = create<std::string>(str);
-    std::cout<<str2<<"\n";
-
-    //rValue
-    int myFive2 = create<int>(5);
-    std::cout<<myFive2<<"\n";
-
-    std::string str3 = create<std::string>(std::string("Rvalue"));
-    std::cout<<str3<<"\n";
-
-    std::string str4 = create<std::string>(std::move(str3));
-    std::cout<<str4<<"\n";
-
-    //Arbitrary number of arguments
-    double doub = create<double>();
-    std::cout<<doub<<"\n";
-    MyStruct myStr = create<MyStruct>(2011,3.14,str4);
-
+    return 0;
 }
-
