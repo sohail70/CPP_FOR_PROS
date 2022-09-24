@@ -1512,6 +1512,79 @@ terminate the program with std::terminate
 throw an exception of type std::bad_alloc
 */
 
+
+//delete 
+
+Point* p = new Point(1.0,2.0);
+delete p; //further access to he p object results in undefined behavior ---> behtare p ro be obj dg point kuni
+
+/*
+! Using delete to deallocate an object allocated with new[] will result
+! in undefined behavior. --> we should use delete[] -->why? --->  delete[] calls all the destructors of the C array.
+! Using delete[] to deallocate an object allocated object with new will also result in an undefined behavior. --> harchi ro bejash use kun.
+*/
+Point* p = new Point[15];
+delete[] p;
+
+/*
+! If the deleted object belongs to a type hierarchy, the destructor of the object
+! and the destructors of all base classes will be automatically called
+*/
+#include<iostream>
+class A{
+    public:
+        A(){std::cout<<"A constructor"<<"\n";};
+        ~A(){std::cout<<"A destructor"<<"\n";};
+};
+
+class B: public A{
+    public:
+        B():A(){std::cout<<"B constructor"<<"\n";};
+        ~B(){std::cout<<"B destructor"<<"\n";};
+};
+
+
+int main()
+{
+    B* b = new B(); //A constructor - B constructor
+    delete b; // B constructor - A constructor
+    std::cout<<"end"<<"\n";
+}
+
+//!Now if the main function looks like this then the B destructor doesnt get called
+int main()
+{
+    A* b = new B(); //A constructor - B constructor
+    delete b; //A constructor 
+    std::cout<<"end"<<"\n";
+}
+
+/*
+So what should we do now????
+! If the destructor of the base class is virtual, we can destroy the object with a pointer
+! or reference to the base class.
+*/
+#include<iostream>
+
+
+class A{
+    public:
+        A(){std::cout<<"A constructor"<<"\n";};
+        virtual ~A(){std::cout<<"A destructor"<<"\n";};
+};
+
+class B: public A{
+    public:
+        B():A(){std::cout<<"B constructor"<<"\n";};
+        ~B(){std::cout<<"B destructor"<<"\n";};
+};
+
+int main()
+{
+    A* b = new B(); //A constructor - B constructor
+    delete b; // B constructor - A constructor
+    std::cout<<"end"<<"\n";
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
