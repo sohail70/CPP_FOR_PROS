@@ -1874,7 +1874,30 @@ int main()
 ! const keyword applies to int but not to the reference property.
 */
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// LAMBDA FUNCTION --> function without a name
+/*
+! A cool feature of lambdas is that they can be treated as data. Hence, they can
+! be stored or copied in variables.
 
+capture parameters(optional) return value(optional) functionbody
+  []           ()                   ->                  {...}
+
+! [] : Captures the used variables.
+! () : Necessary for parameters.
+! -> : Necessary for complex lambda functions.
+! {} : Function body, per default const .
+!   []() mutable -> {...} has a non-constant function body.
+
+
+! The first thing we need to know is that lambdas are just function objects
+! automatically created by the compiler.
+
+
+! A function object is an instance of a class for which the call operator, operator
+! () , is overloaded. This means that a function object is an object that behaves
+! like a function. The main difference between a function and a function object
+! is that a function object is an object and can, therefore, have a state.
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

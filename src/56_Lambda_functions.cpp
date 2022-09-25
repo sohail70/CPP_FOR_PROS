@@ -38,7 +38,7 @@ Function vs. function object #
 Here is a simple example.
 
 
-int addFuncint a , int b ){return a+b;}
+int addFunc(int a , int b ){return a+b;}
 
 int main()
 {
