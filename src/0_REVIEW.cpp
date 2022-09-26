@@ -1984,9 +1984,19 @@ using namespace std::string_literals;
 
 int main()
 {
-    auto add11 =[] (int i m int i2) {return i+i2;};
-    auto add14 = [](auto i , auto i2){return i+i2};
-    std::Vector<int> myVec{1,2,3,4,5};
+    auto add11 =[] (int i , int i2) {return i+i2;}; // The add lambda on line 7 works solely with int arguments.
+    auto add14 = [](auto i , auto i2){return i+i2;};//Now, any two types that support the + operation with each other will automatically work in add14 . The compiler will decide the return type of the function.
+    std::cout<<add(2000,11)<<"\n";
+    std::cout<<add14(2000,14)<<"\n";
+    std::cout<<add14(2000L,14)<<"\n"; //long integers
+    std::cout<<add14(3,0.1415)<<"\n"; //floats
+    std::cout<<add14(std::string("Hello ") , std::string("World"))<<"\n"; //strings
+
+
+
+
+
+    std::vector<int> myVec{1,2,3,4,5};
     auto res11 = std::accumulate(myVec.begin(),myVec.end(),0,add11);
     auto res14 = std::accumulate(myVec.begin(),myVec.end(),0,add14);
 
@@ -2025,6 +2035,136 @@ int main()
 ! A lambda should be short and concise.
 ! A lambda should be self-explanatory, especially since it does not have a name.
 */
+
+
+//examples: Lambdas with a vector 
+#include<iostream>
+#include<vector>
+#include<algorithm>
+#include<iterator>
+
+bool lessLength(const std::string& f,const std::string& s)
+{
+    return f.length()<s.length();
+}
+
+
+class GreaterLength
+{
+    public:
+        bool operator() (const std::string& a ,const std::string&b) const {return a.length()>b.length();};
+};
+
+int main()
+{
+    std::vector<std::string> myStrVec{"12345","123456","1234","1","12","123","12345"};
+    //sorting with the function
+    std::sort(myStrVec.begin(),myStrVec.end(),lessLength);
+    std::copy(myStrVec.begin(),myStrVec.end(),std::ostream_iterator<std::string>(std::cout,"\n")); //What a fun way to print the results
+    //sorting in reverse with the function object
+    std::sort(myStrVec.begin(),myStrVec.end(),GreaterLength());
+    std::copy(myStrVec.begin(),myStrVec.end(),std::ostream_iterator<std::string>(std::cout,"\n"));
+    //sorting with the lambda function
+    std::sort(myStrVec.begin(),myStrVec.end(),[](const std::string& a, const std::string& b){return a<b;});
+    std::copy(myStrVec.begin(),myStrVec.end(),std::ostream_iterator<std::string>(std::cout,"\n"));
+    // using the lambda function for output
+    std::for_each(myStrVec.begin(),myStrVec.end(),[](const std::string& a){std::cout<<a<<"\n";});
+
+}
+
+
+// Example: Closure with lambdas
+#include<iostream>
+#include<string>
+int main()
+{
+    std::string copy = "original";
+    std::string ref = "original";
+
+    auto lambda = [copy,&ref]{std::cout<<copy<<" "<<ref<<"\n";}; //deghat kun copy ro besorate copy va ref ro besorate ref gereftim 
+    lambda(); // output: original original
+    copy = "changed";
+    ref = "changed";
+    lambda(); // ba inke copy ro taghir dadim chun az aval lambda copy ro besorate copy capture karde javab taghiri nemikune ama ref chera ---> sol ---> original changed
+    std::cout<<"\n";
+}
+
+//Example: this binding
+/*
+! this binds all the members of a class to the lambda. It is very similar to
+! the = binding.
+*/
+#include<iostream>
+
+
+class ClassMember{
+    const static int a = 1;
+    int get10()
+    {
+        return 10;
+    }
+
+    public:
+        void showAll()
+        {
+            //define and invoke (trailing() ) the lambda functions
+            [this]{std::cout<<"by this = "<<get10()+a<<std::endl;}(); //fek kunam farghi nemikune () ro akhar bezari - aslan age nazari ham error nemide!
+            [&]{std::cout<<"by reference = "<<get10()+a<<std::endl;}();
+            [=]{std::cout<<"by copy = "<<get10()+a <<std::endl;}();
+        }
+};
+
+int main()
+{
+    ClassMember cM;
+    cM.showAll();
+}
+
+
+//Exercise: The program below has undefined behavior. Fix it.
+#include <functional>
+#include <iostream>
+#include <string>
+std::function<std::string()> makeLambda() {
+    const std::string val = "on stack created";
+    return [val]{return val;};
+}
+
+int main(){
+    auto bad = makeLambda();
+    std::cout << bad();
+}
+
+
+//sol:
+/*
+The trick is to bind val to the lambda as a copy.
+
+Initially, we were binding val as a reference. When the function ends,
+val is destroyed and its reference is undefined. This will result in
+undefined behavior.
+
+It could work, cause and error, or return some garbage value.
+
+Returning a copy of it ensures that the value of val is preserved even
+when the actual variable is freed from memory.
+*/
+#include<functional>
+#include<iostream>
+#include<string>
+
+std::function<std::string()> makeLambda()
+{
+    const std::string val = "on stack created";
+    return [val]{return val;};
+}
+
+int main()
+{
+    auto bad = makeLambda();
+    std::cout<<bad()<<"\n";
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

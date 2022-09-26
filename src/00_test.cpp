@@ -1,12 +1,12 @@
-#include<functional>
-#include<iostream>
-std::function<int(int)> makeLambda(int a)
-{
-    return [a](int b){return a+b;};
+#include <functional>
+#include <iostream>
+#include <string>
+std::function<std::string()> makeLambda() {
+    const std::string val = "on stack created";
+    return [val]{return val;};
 }
 
-int main()
-{
-    auto lam = makeLambda(2); //makeLmabda(2) creates a lambda expression that captures a which is, in this case, is 2
-    std::cout<<lam(4);
+int main(){
+    auto bad = makeLambda();
+    std::cout << bad();
 }
