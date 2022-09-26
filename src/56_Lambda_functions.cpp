@@ -95,9 +95,9 @@ BINDING                     DESCRIPTION
 [&a]                        a per reference
 [=]                         all used variables per copy
 [&]                         all used variables per reference
-[=,&a]                      per deafult per copy; a per reference
-[&,a]                       per deafult per reference; a per copy
-[this]                      data and member of the enclosing class per copy
+[=,&a]                      per default per copy; a per reference
+[&,a]                       per default per reference; a per copy
+[this]                      data and member of the enclosing class per copy ---> fek kunam faghat to class mitoni in sabki benvisi
 [l = std::move(lock)]       moves lock (C++14)
 
 

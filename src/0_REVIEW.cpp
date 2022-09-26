@@ -1903,12 +1903,128 @@ capture parameters(optional) return value(optional) functionbody
 int addFunc(int a , int b){return a+b;}
 int main()
 {
-    struct addObject{
+    struct addObject{//That is what the C++ compiler does implicitly if I use a lambda expression.
         int operator() (int a, int b){return a+b;};
     };
     addObject addObj;
     std::cout<<addObj(2,3)<<"\n";
+    addObj(4,2)==addFunc(4,2);
+    
+    auto addObject2 = [](int a , int b){return a+b;};
+    addObject2(2,6)==addFunc(4,2);
 }
+
+/*
+! That’s all! If the lambda expression captures its environment and therefore
+! has a state, the corresponding struct, AddObj , gets a constructor for initializing
+! its members. If the lambda expression captures its argument by reference, so
+! does the constructor. The same holds for capturing by value.
+*/
+
+
+/*
+! Lambda functions can bind their invocation context. This is perhaps the best
+! feature of C++ lambdas.
+! Binding allows any variables passed in the surrounding scope(invocation
+! context) to be passed to the lambda. This is what the [] in the beginning is
+! for. Within these square brackets, we can specify which variables we want the
+! lambda to capture.
+
+
+BINDING                     DESCRIPTION
+[]                          no binding
+[a]                         a per copy
+[&a]                        a per reference
+[=]                         all used variables per copy
+[&]                         all used variables per reference
+[=,&a]                      per default per copy; a per reference
+[&,a]                       per default per reference; a per copy
+[this]                      data and member of the enclosing class per copy
+[l = std::move(lock)]       moves lock (C++14)
+
+*/
+
+#include<iostream>
+int main()
+{
+    int a =10;
+    int c= 12;
+    int d= 14;
+
+    auto addFunc = [= , &a](int b) {
+        a=20;
+        return a+b+c+d;
+        }; // = va & hame varhaye toye scope e lambda ro miare to lambda. deghat kun a ro reference e capture kardim
+
+    std::cout<<addFunc(4)<<"\n";
+}
+
+
+//Generic lambda funcs ---> c++14 ---> lambda ha type deduction peyda kardan vase arg hashon
+[](auto a, auto b){return a+b;};
+/*
+! The call operator becomes a template. I want to emphasize it explicitly: a
+! generic lambda is a function template.
+
+so: https://stackoverflow.com/questions/17233547/how-does-generic-lambda-work-in-c14
+auto glambda = [] (auto a) { return a; }; 
+means: glambda is an instance of this type:
+class unnamed
+{
+public:
+    template<typename T>
+    T operator () (T a) const { return a; }
+};
+*/
+#include<iostream>
+#include<vector>
+#include<numeric>
+
+using namespace std::string_literals;
+
+int main()
+{
+    auto add11 =[] (int i m int i2) {return i+i2;};
+    auto add14 = [](auto i , auto i2){return i+i2};
+    std::Vector<int> myVec{1,2,3,4,5};
+    auto res11 = std::accumulate(myVec.begin(),myVec.end(),0,add11);
+    auto res14 = std::accumulate(myVec.begin(),myVec.end(),0,add14);
+
+    std::cout<<res11<<"\n";
+    std::cout<<res14<<"\n";
+
+    std::vector<std::string> myVecStr{"Hello"s , "World"s};
+    auto st = std::accumulate(myVecStr.begin(),myVecStr.end(),""s,add14);
+    std::cout<<st<<"\n";
+}
+
+
+/*
+! The difference between the usage of functions and lambda functions boils
+! down to two points:
+
+! 1. We cannot overload lambdas.
+! 2. A lambda function can capture local variables.
+*/
+#include<functional>
+#include<iostream>
+std::function<int(int)> makeLambda(int a)
+{
+    return [a](int b){return a+b;};
+}
+
+int main()
+{
+    auto lam = makeLambda(2); //makeLmabda(2) creates a lambda expression that captures a which is, in this case, is 2
+    std::cout<<lam(4);
+}
+
+
+/*
+! Last, here are a couple of tips for how we should design lambdas:
+! A lambda should be short and concise.
+! A lambda should be self-explanatory, especially since it does not have a name.
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
