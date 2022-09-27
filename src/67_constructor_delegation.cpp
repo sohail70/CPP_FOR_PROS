@@ -11,7 +11,8 @@ through an initializer list. However, we are not restricted to just that.
 
 struct Account{
     Account(): Account(0.0){}
-    Account (double b): balance(b){} };
+    Account (double b): balance(b){}
+};
 
 
 ! In the example above, the default constructor calls the parameterized
@@ -22,14 +23,13 @@ Rules #
 ! created. This object can then be altered in the calling constructor’s body.
 
 ! It is important to perform constructor delegation in the initializer list. If it
-! is called in the body, a new class object will be created and we will end upwith two objects, which is not the behavior we want.
+! is called in the body, a new class object will be created and we will end up with two objects, which is not the behavior we want.
 
 ! Recursively invoking constructors will result in undefined behavior.
 
 ! The aim of delegation is to let one constructor handle initialization. That
 ! object can be used or modified by all other constructors. In other words,
 ! constructors can delegate the task of object creation to other constructors.
-
 
 
 ! A great advantage of constructor delegation is that the initialization code is
