@@ -90,7 +90,7 @@ static attributes #
 
 ! Usually, each object generates its own copy of the class’s attributes, i.e., the
 ! attributes of one object are independent of the attributes of another.
-! This is not true for a static attribute. Only one instance of the attribute ispresent and shared among all the objects.
+! This is not true for a static attribute. Only one instance of the attribute is present and shared among all the objects.
 ! Think of it as a global class variable.
 
 ! A static attribute can also be accessed without a class instance because it is

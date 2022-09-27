@@ -1,12 +1,16 @@
-#include <functional>
-#include <iostream>
-#include <string>
-std::function<std::string()> makeLambda() {
-    const std::string val = "on stack created";
-    return [val]{return val;};
-}
+#include<iostream>
 
-int main(){
-    auto bad = makeLambda();
-    std::cout << bad();
+class A{
+    public:
+    A() = default;
+
+    private:
+        int aa;
+};
+
+
+int main()
+{
+    A a;
+    std::cout<<sizeof(a)<<"\n";
 }
