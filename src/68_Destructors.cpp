@@ -75,7 +75,7 @@ class MyClass{
 
 
 ! A base class destructor should be either public and virtual or protected
-! and nonvirtual. This is quite easy to get. If the destructor of the base class is
+! and non virtual. This is quite easy to get. If the destructor of the base class is
 ! protected, we cannot destroy derived objects using a base class pointer;
 ! therefore, the destructor must not be virtual.
 
@@ -105,7 +105,7 @@ Calling Base b will cause an error.
 From the internet:
 Quite often. If a class is not designed to be inherited, then it doesn't need a virtual destructor and would only end up paying a possibly large overhead for
 something it doesn't need. Likewise, even if a class is designed to be inherited but you never delete subtype instances through a base pointer, then it 
-also does not require a virtual destructor. In that case, a safe practice is to define a protected nonvirtual destructor
+also does not require a virtual destructor. In that case, a safe practice is to define a protected non-virtual destructor
 
 */
 #include<iostream>

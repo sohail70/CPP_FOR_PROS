@@ -31,7 +31,7 @@ inline void Account::withdraw(double amt){balance -= amt;}
 
 
 
-If it is defined inside the class, the compiler automatically considers it aninline function.
+If it is defined inside the class, the compiler automatically considers it an inline function.
 
 this pointer #
 ! The this pointer can be used to access the attributes of a class within a
@@ -74,7 +74,7 @@ class Account{
 ...
 int total = Account::getDeposits();
 
-! Note: Static methods do not have this pointers. They can only accessstatic attributes and methods.
+! Note: Static methods do not have this pointers. They can only access static attributes and methods.
 
 
 const methods #
