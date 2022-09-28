@@ -78,6 +78,48 @@ empty class takes 1 byte. why? Simply a class without an object requires no spac
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ///MORE CONSTRUCTORS
+/*
+
+from the internet:
+Do we have to explicitly define a default constructor when we define a copy constructor for a class?? 
+
+! Yes. Once you explicitly declare absolutely any constructor for a class, the compiler stops providing the implicit default constructor. 
+! If you still need the default constructor, you have to explicitly declare and define it yourself.
+
+P.S. It is possible to write a copy constructor (or conversion constructor, or any other constructor) that is also default constructor.
+If your new constructor falls into that category, there's no need to provide an additional default constructor anymore :)
+
+*/
+
+
+
+
+/*
+
+copy assignment operator vs copy constructor
+https://www.geeksforgeeks.org/copy-constructor-vs-assignment-operator-in-c/
+
+ME: one of them is constructor and creates the object but the other one doesn't create one but uses an existing object.
+! While the copy assignment operator does copy data to another object, the copy constructor initializes a new object with the copied data. 
+
+Base b = base; //calls copy constructor
+
+base b;
+b = base; //calls copy-assignment
+
+!BUT
+    Base* base4 = new Base();
+    Base* base5;
+    base5 = base4; //IT dones't call copy-assignment !!!!!! WHY? Ithink !Heap objects don’t naturally support copy semantics in C++ : In this case, data is not copied but both the pointers point to same address.
+
+! Heap objects don’t naturally support copy semantics in C++
+
+Another comment:
+Second thing is, that your assignment operator takes argument by value instead of by reference, which causes default copy constructor to create a copy of your MyArray1 before it's passed to assignment operator. This is where the direct source of your problem lays.
+
+*/
+
+
 class Account{
     public:
         Account(const Account& other);//copy constructor: allows a class to create an object by copying an existing object. They expect a constant reference to another instance of the class as their argument.
@@ -577,11 +619,661 @@ const vs. constexpr #
 ! On the other hand, constexpr methods are used to increase performance and
 ! optimize the program.
 
+
 */
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+///Example --> static methods
+#include<iostream>
+
+
+class Account{
+    public:
+        Account(){deposits++;} //Whenever the constructor is called, the static value deposits is incremented by 1 .
+
+        static int getDeposits() //static method
+        {
+            return Account::deposits;
+        }
+    
+    private:
+        static int deposits; //static attribute
+};
+int Account::deposits = 0;
+
+int main()
+{
+    std::cout<<Account::getDeposits()<<"\n"; //bedone obj ham mishe static attribute ro call kard
+
+    Account acc1;
+    Account acc2;
+
+    std::cout<<acc1.getDeposits()<<"\n";
+    std::cout<<acc2.getDeposits()<<"\n";
+    std::cout<<Account::getDeposits()<<"\n";
+}
+
+
+///Example --> this pointer
+#include<iostream>
+
+class Base{
+    public:
+        Base& operator= (const Base& other){
+            if(this==&other) //check kunim bebinim ke self-assignment nadashte bashim 
+            {
+                std::cout<<"self-assignment"<<std::endl;
+                return *this; // dereferenced value of the this reference to our object. --> this ke pointer hast va vaghti dereference mishe mishe khode object
+            }
+            else
+            {
+                a = other.a;
+                b = other.b;
+                return *this;
+            }
+        }
+
+        void newA()
+        {
+            int a{2011};
+            std::cout<<"this->a: "<<this->a<<std::endl; //1998 
+            std::cout<<"a: " <<a<<std::endl; //2011 ---> in ba this->a fargh dare --> //! a is variable but this->a is an attribute
+            std::cout<<"b: "<<b<<std::endl; //2014 --> Since there isn’t a b variable in the method, this->b and b mean the same thing //! This is because every member already has an implicit this pointer.
+            std::cout<<"this->b: "<<this->b <<std::endl; //2014 
+        }
+
+    private:
+        int a{1998};
+        int b{2014};
+
+};  
+
+int main()
+{
+    Base base;
+    base.newA();
+
+
+    Base& base2 = base;
+    base = base2;
+
+}
+
+///constant methods
+#include<iostream>
+
+class Account{
+    public:
+        double getBalance() const{return balance;} //faghat value ro return mikune
+        void addAmount(double amount){balance+=amount;}
+    private:
+        double balance{0.0};
+};
+
+int main()
+{
+    Account readWriteAccount;
+    readWriteAccount.addAmount(50.0);
+    std::cout<<readWriteAccount.getBalance()<<"\n";
+
+    const Account readAccount; //! const object can only call const methods ---> age addAmount ro bahash seda bezani error mide
+    std::cout<<readAccount.getBalance()<<"\n";
+}
+
+
+///constexpr methods
+#include<iostream>
+
+class Account{
+    public:
+        constexpr Account(int amou): amount(amou){}
+/*
+The constexpr constructor, and the methods getAccountFees and
+getAmount will be evaluated at compile time.
+*/
+        constexpr double getAmount() const{ //! Since constexpr methods are implicitly const , we mention the const keyword in the definitions as well.
+            return amount;
+        }
+        constexpr double getAccountFees() const
+        {
+            return 0.5*getAmount();
+        }
+
+    private:
+        double amount;
+};
+
+int main()
+{
+    constexpr Account accConst(15);
+    constexpr double amouConst = accConst.getAmount(); //! shows how the returned value of getAmount() can be stored in a constexpr double .
+    static_assert(amouConst==15,"not compile time calculation");
+
+    Account accDyn(15);
+    double amouDyn = accDyn.getAmount(); //! constexpr methods can also be called by non- constexpr objects.
+    //static_assert(amouDyn==15)
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// REQUEST AND SUPPRESS METHODS
+/*
+Since C++11, there has been a list of special methods that the compiler can
+generate implicitly if we have not defined them:
+! Default constructors and destructors.
+! Copy/move constructors and copy/move assignment operators.
+! new and delete operators for objects and C arrays of objects.
+! The default and delete keywords can be used to guide the creation or suppression of these special methods.
+! default can only be assigned to special methods that do not have any default arguments. Hence, it wouldn’t work with something like an ordinary class method or a parameterized constructor.
+
+
+
+! Let’s suppose we have a parameterized constructor for our Account class but
+! no default constructor. The compiler can easily generate it for us. All we need
+! to do is assign default to the default constructor.
+
+*/
+
+...
+Account() = default; 
+Account (double balance){this->balance = balance;} //chun in constructor ro neveshti dg compiler be sorate automatic default constructor ijad nemikune (bekhatere rule 0 3 and 5 which states that when you define any constructor you have to define them all or just 3 of them and compiler doesnt use its imlicit constructor anymore) -->ama age khate bala ro benvisi = default ijad mikune
+...
+
+
+
+/*
+
+Request methods: default #
+The compiler generates the request methods when it has the following
+characteristics:
+! public access rights and are not virtual.
+
+! The copy constructor and copy assignment operator get constant lvalue
+! references.
+
+! The move constructor and move assignment operator get non-constant
+! rvalue references.
+
+! The methods are not declared explicit and possess no exception
+! specifications.
+
+
+
+Suppress methods: delete #
+
+! By using delete , we can define purely declaratively that an automatically
+! generated method from the compiler is not available.
+
+! We can simply tell the compiler what to do without explaining how to do
+! it.
+
+! By using delete in combination with default , we can define whether or
+! not a class’s objects:
+    ! can be copied.
+    ! can only be created on the stack.
+    ! can only be created on the heap.
+
+! Apart from objects and pointers, delete is also applicable to functions.
+
+*/
+
+/* nokte hashieee:
+ SomeType sometype() vs SomeType sometype; ---> avali function prototype hast va dovomi default constructor SomeType ro seda mizane baraye ijade object
+ alabte deghat kun SomeType() mishe ijad object ---> SomeType sometype = SomeType();
+*/
+
+
+//Example
+#include<iostream>
+
+class SomeType{
+    public:
+
+    //state the compiler to generate default constructor
+    SomeType() = default;
+
+    //constructor for int
+    SomeType(int value) //chun ino ijad kardi compiler dg constructor haye dg ro besorate implicit ijad nemikune pas to khodet ijad kun va default bezar ta compiler befahme ke bayad ijad kune
+    {
+        std::cout<<"SomeType(int)"<<"\n";
+    }
+
+    // Explicit copy constructor
+    explicit SomeType(const SomeType&) = default;  //The explicit keyword is used in the copy constructor to avoid implicit conversions during copying.
+
+    //virtual destructor
+    virtual ~SomeType() = default; //We need the virtual destructor in case there is a derived class inheriting SomeType .
+};
+
+
+int main()
+{
+    SomeType someType;
+    SomeType someType2(2);
+    SomeType someType3(someType2); //ME: you can also use {} 
+}
+
+
+// Example: Restricting operations using delete 
+
+#include<iostream>
+
+class NonCopyableClass
+{
+public:
+
+    // state the compiler generated deafult constructor
+    NonCopyableClass() = default;
+
+    // disallow copying
+    NonCopyableClass& operator= (const NonCopyableClass&) = delete;
+    NonCopyableClass(const NonCopyableClass&) = delete;
+
+    // disallow copying
+    NonCopyableClass& operator =(NonCopyableClass&&) = default;
+    NonCopyableClass(NonCopyableClass&&) = default;
+
+};
+
+class TypeOnStack{
+public:
+    void* operator new(std::size_t) = delete;
+};
+
+class TypeOnHeap{
+public:
+    ~TypeOnHeap() = delete; //Me: Interesting :)
+};
+
+void onlyDouble(double){}
+template<typename T>
+void onlyDouble(T) = delete; // hame ro rad mikune ama chun do khat balatar double ro neveshtim faghat ono ghabool mikune
+
+
+int main()
+{
+    NonCopyableClass nonCopyableClass;
+    
+    TypeOnStack typeOnStack;
+
+    TypeOnHeap* typeOnHeap = new TypeOnHeap;
+
+    onlyDouble(3.14);
+
+    // force the compiler error
+    NonCopyableClass nonCopyableClass2(nonCopyableClass); // cannot copy
+
+    TypeOnStack* typeOnHeap2 = new TypeOnStack; // cannot create on heap
+
+    TypeOnHeap typeOnStack2; // cannot create on stack
+
+    onlyDouble(2011); // int argument not accepted
+}
+
+
+// Exercise Define a class template that can be invoked with an int value.
+
+//My first solution was wrong which was like this:
+
+/*
+template<typename T>
+class OnlyInt{
+public:
+    OnlyInt(int a){}
+    OnlyInt(T) = delete;
+};
+
+int main()
+{
+    OnlyInt(5); // ok
+    OnlyInt(5L); // ERROR
+}
+
+*/
+
+//The solution:
+#include<iostream>
+
+
+class OnlyInt{
+public:
+    OnlyInt(int){}
+    template<typename T>
+    OnlyInt(T) = delete;
+};
+
+int main()
+{
+    OnlyInt(5); // ok
+    OnlyInt(5L); // ERROR
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///OPERATOR OVERLOADING
+struct Account{
+    Account& operator += (double b)
+    {
+        balance += b;
+        return *this;
+    }
+
+    double balance;
+};
+int main()
+{
+    Account a;
+    a+=100;
+    std::cout<<a.balance<<"\n";
+}
+
+/*
+! We have already encountered function overloading. If the function is inside a
+! class, it must be declared as a friend and all its arguments must be provided.
+
+Rules #
+We cannot change the precedence of an operator.
+! Derived classes inherit all the operators of their base classes except the assignment operator. Each class needs to overload the = operator.
+! All operators other than the function call operator cannot have default arguments.
+
+! Operators can be called explicitly. A benefit of overloading an operator
+! is that it can be used directly with its operands. However, the compiler
+! may cause some implicit conversion in this process. We can make explicit
+! calls to the overloaded operator in the following format: a.operator +=
+! (b) .
+*/
+
+
+#include<iostream>
+
+class Account{
+
+public:
+    explicit Account(double b):balance(b){}
+
+    Account& operator += (double b)
+    {
+        balance += b;
+        return *this; //Me: return the updated version of the object
+    }
+
+    friend Account& operator+=(Account& a , Account& b);
+    friend std::ostream& operator <<(std::ostream& os , const Account& a);
+
+private:
+    double balance;
+};
+
+
+Account& operator += (Account& a , Account& b)
+{
+    a.balance += b.balance;
+    return a;
+}
+
+std::ostream& operator<< (std::ostream& os , const Account& a)
+{
+    os<<a.balance;
+    return os;
+}
+
+int main()
+{
+    Account acc1(100.0);
+    Account acc2(100.0);
+    Account acc3(100.0);
+
+    acc1 += 50.0;
+    acc1 += acc1;
+
+    acc2 += 50.0;
+    acc2 += acc2;
+
+    acc3.operator+= (50.0); //the explicit operator call works when the argument is a double --> yani += e avali call mishe
+    //acc3.operator+= (acc3); //Error --> chun in dare az += e avali estefade mikune ke double be onvan vorodi ghabool mikune
+
+    std::cout<<acc1<<"\n";
+    std::cout<<acc2<<"\n";
+}
+
+
+/*
+
+The following operators cannot be overloaded:
+!    .
+!    ::
+!    ?:
+!    sizeof
+!    .*
+!    typeof
+
+*/
+
+
+/*
+
+Assignment operators #
+
+! We can overload the assignment operator by implementing it as a copy or
+! move assignment operator. It has to be implemented in a class method. The
+! implementation is very similar to a copy or move constructor.
+
+! If the assignment operator is not overloaded, the compiler creates one
+! implicitly. This operator performs a member-wise assignment of all the values
+! from the object to be assigned. This is very similar to the behavior of the copy
+! constructor, except that instead of a new object being created, the members of
+! an existing object are updated.
+
+*/
+/*
+
+In this example, the assignment operator for the Account class is
+overloaded for both copy (line 16) and move (line 27) operations.
+
+! If the argument is an lvalue, a copy is performed. A new array on the
+! heap is created, called deposits , and the contents of other 's array is
+! copied into it, as seen in lines 18 and 19.
+
+! If the argument is an rvalue, a move is performed. In this case, a new
+! array is not created. This makes the move operation much faster.
+
+This is evident in the main program.
+
+! The std::move call on line 53 returns an rvalue, hence the assignment
+! operator will move the data from account2 to account .
+
+This is significantly more efficient than the copy assignment on line 48.
+*/
+
+#include<algorithm>
+#include<chrono>
+#include<iomanip>
+#include<iostream>
+
+
+class Account{
+
+public:
+    Account() = default;
+    Account(int numb): numberOf(numb), deposits(new double[numb]){}
+
+    Account(const Account& other): numberOf(other.numberOf),deposits(new double [other.numberOf])
+    {
+        std::copy(other.deposits , other.deposits + other.numberOf , deposits);
+    }
+
+    Account& operator = (const Account& other)
+    {
+        numberOf = other.numberOf;
+        deposits = new double [other.numberOf]; //ME: Now that you've allocated a memory you should copy the content by using the std::copy
+        std::copy(other.deposits , other.deposits + other.numberOf , deposits);
+        return *this;
+    }
+
+    Account(Account&& other): numberOf(other.numberOf) , deposits(other.deposits) //ME: when its && it means its ready to move
+    {
+        other.deposits = nullptr; //ME: After you moved you must make it null because this is move semantics
+        other.numberOf = 0;
+    }
+
+    Account& operator = (Account&& other)
+    {
+        numberOf = other.numberOf;
+        deposits = other.deposits;
+        other.deposits = nullptr;
+        other.numberOf = 0;
+        return *this;
+    }
+
+private:
+    int numberOf;
+    double* deposits;
+
+};
+
+int main()
+{
+    std::cout<<std::fixed<<std::setprecision(10);
+
+    Account account(200000000);
+    Account account2(100000000);
+
+    auto start = std::chrono::system_clock::now();
+    
+    account = account2;
+    std::chrono::duration<double> dur = std::chrono::system_clock::now() - start;
+    std::cout<<"Account& operator = (const Account& other): "<<dur.count()<<"\n";
+
+    start = std::chrono::system_clock::now();
+    account = std::move(account2);
+    dur = std::chrono::system_clock::now() - start;
+    std::cout<<"Account& operator=(Account&& other): "<<dur.count()<<"\n";
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///EXPLICIT CONVERSION OPERATORS
+/*
+In C++98, the explicit keyword was only supported for conversion
+constructors. Conversion operators converted user-defined objects implicitly.
+
+All this changed in C++11. Now, we can overload conversion operators to
+explicitly prevent and permit conversions.
+
+Let’s suppose that a class called MyClass can perform conversions from class
+A to MyClass and from MyClass to class B .
+see the picture in PDF 80
+
+class MyClass{
+public:
+    explicit MyClass(A){}   // C++98
+    explicit operator B(){} // C++11
+};
+
+MyClass(A) : Converting constructor
+operatorB() : Converting operator
+
+
+! As we can see, the explicit keyword can now be used when overloading the
+! conversion operator, B() .
+
+
+! One thing to keep in mind is that implicit conversions to bool are still
+! possible, so be careful.
+
+*/
+
+class MyBool{
+
+public:
+    explicit operator bool(){return true;}
+
+};
+...
+MyBool myB;
+if(myB){};
+int a = (myB)? 3:4;
+int b = myB + a; //Error
+/*
+! We have defined that a MyBool object can be converted to bool but not to
+! anything else.
+
+! Because of this, int b = myB + a; causes an error, since it is trying to
+! implicitly convert myB to int .
+*/
+
+
+//Example
+
+#include<iostream>
+
+class A{};
+
+class B{};
+
+class MyClass{
+public:
+    MyClass(){}
+    explicit MyClass(A){}       // since C++98
+    explicit operator B(){return B();} //new with c++11 //return nadarae conversion operator --> az tarafi bade operator bayad esme on class e ke mikhay behesh convert kuni yani B() ro benvisi
+
+};
+
+void needMyClass(MyClass){}; //aya type A ro mishe biarim too? no chun tabdil type A be MyClass nadarim ---> age explicit ro az oon constructor bala bardarim mishe implicit in etefagh biofte //! dar kol ta oon jaee ke man fahmidam implicit yani bezor khodesho shabih on samte tasavi bokone hala inkaro ba constructor mitone anjam bede
+void needB(B){};
+
+struct MyBool{
+    explicit operator bool(){return true;}
+};
+
+int main()
+{
+    // A -> MyClass
+    A a;
+
+    // Explicit invocation
+    MyClass myClass1(a);
+    
+    // imlicit conversion from A to MyClass --> chun oon bala neveshti explicit in javab nemide 
+    MyClass myClass2 = a; //inja bayad bezoor a ro convert kune be MyClass (yani implicit) ke nemitoone chun constructor explicit hast
+    needMyClass(a); //inja ham mikhad implicitly a ro tabdil kune be MyClass ke constructor explicit hast va ejaze nemide
+
+    //MyClass -> B
+    MyClass myC1;
+
+    //Explicit  invocation --> //! in nemidonam chera javab nemide?!!!
+    B b1(myC1); //dar vaghe tabdil type MyClass be B hast ke operator oveloadesh ro dar class gozashtim
+    //implicit conversion from MyClass to B ---> explicit hast conversion operator  dar class va nemizare
+    B b2 = myC1;
+    needB(myC1);
+
+    // MyBool -> bool conversion
+    MyBool myBool;
+    if(myBool){};
+    int myNumber = (myBool)? 1998 :2011; //! IMPORTANT--> implicit conversion dar vaghe dare inja rokh mide ke myBool ke az jense class MyBool hast ro mikhaym be bool tabdil kunim ke ba tavajoh be overload ee ke kardim dar oon struct khoroji mishe true.
+    //implicit conversion
+    int myNewNumber = myBool + myNumber; //!javab nemide chun dar struct bala explicit kardim conversion operator ro
+    auto myTen = (20*myBool - 10 *myBool) / myBool;
+}
+/*
+! We have defined an explicit conversion constructor from A to MyClass in
+! line 10.
+
+! The constructor call works fine in line 27, but the implicit conversions in
+! lines 29 and 30 are rejected by the compiler.
+
+! needMyClass(a) will not be able to implicitly convert a to MyClass . This
+! functionality has been available since C++98.
+
+! We have defined an explicit conversion operator from MyClass to B in
+! line 11.
+
+! Lines 38 and 39 use an implicit conversion. Due to the explicit conversion
+! operator B in line 11, this is not valid.
+
+! Because of this explicit definition, implicit conversions through the
+! operator are rejected by the compiler, as seen in lines 46 and 47.The explicit conversion feature was introduced in C++11.
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 /* PDF 80
-Explicit Conversion Operators
+Explicit Conversion Operators --> in video khoobe--> https://www.youtube.com/watch?v=M2D11HXlgnE
 WE'LL COVER THE FOLLOWING
 • Asymmetry in C++98
 • Example
@@ -70,7 +70,7 @@ public:
 
 };
 
-void needMyClass(MyClass){};
+void needMyClass(MyClass){}; //aya type A ro mishe biarim too? no chun tabdil type A be MyClass nadarim ---> age explicit ro az oon constructor bala bardarim mishe implicit in etefagh biofte //! dar kol ta oon jaee ke man fahmidam implicit yani bezor khodesho shabih on samte tasavi bokone hala inkaro ba constructor mitone anjam bede
 void needB(B){};
 
 struct MyBool{
