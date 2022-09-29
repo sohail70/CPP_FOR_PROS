@@ -1275,16 +1275,727 @@ int main()
 ! operator are rejected by the compiler, as seen in lines 46 and 47.The explicit conversion feature was introduced in C++11.
 */
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///FUNCTION OBJECTS - CALL OPERATOR
+/*
+
+! By overloading the function call operator, () , we can call objects like
+! ordinary function objects that may or may not have arguments. These special
+! objects are known as function objects or, wrongly, as functors.
+! The best feature of function objects is that they can have a state. Since they
+! are objects, data is stored inside them, but they can also be used as functions
+! to return data.
+
+Functors #
+! Functors are very similar to lambda functions. We can say that lambdas
+! actually create anonymous functors.
+
+! Because of this, functors are used frequently in STL algorithms as arguments.
+! These functors can then be applied to the data being passed to the STL
+! functions.
+
+! std::add , std::transform , and std::reduce are just a few of the functions that
+! can use functors and apply them to data.
+
+! A functor that takes a single argument is a unary functor.
+! A functor that takes two arguments is a binary functor.
+Note: Lambda functions can also have a state. ---> dar mesale dovomi mibini ke int sum mishe state e lambda
+*/
+
+#include<algorithm>
+#include<iostream>
+#include<vector>
+
+
+class SumMe{
+    public:
+        SumMe():sum(0){};
+        void operator()(int x)
+        {
+            sum+=x;
+        }
+
+        int getSum()
+        {
+            return sum;
+        }
+    private:
+        int sum;
+};
+
+int main()
+{
+    std::vector<int> vec = {1,2,3,4,5,6,7,8,9,10};
+    SumMe sumMe = std::for_each(vec.begin(),vec.end(),SumMe()); //elemets of vec go to SumMe as an int and sum member variable gets updated one by one --> sum is the state of the function object
+    std::cout<<sumMe.getSum();
+}
+/*
+The std::for_each call in line 27 is a special algorithm of the Standard
+Template Library.
+
+It can return its callable. We invoke std::for_each with the function
+object SumMe and can, therefore, store the result of the function call
+directly in the function object.
+*/
+
+///Example above without function object and just by using lambda:
+#include <algorithm>
+#include <iostream>
+#include <vector>
+
+//! &sum Stores the address of last updated value of sum .
+int main(){
+    std::cout << std::endl;
+    std::vector<int> intVec = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    // Use a lambda function here and class sumMe is no longer needed
+    /*
+        With C++14, the so-called initialization capture of lambdas is supported.
+        sum{0} declares and initializes a variable of type int which is only valid
+        in the scope of the lambda function.
+    */
+    int sum {0}; //! the variable sum represents the state of the lambda function.
+    std::for_each(intVec.begin(), intVec.end(), [&sum](int x) {sum+=x;}); //! ME: if you use sum instead of &sum you must use mutable keyword before lambda body--> reason: First, the type of a lambda expression, which has capture, is a class type (5.1.2 Lambda expressions [expr.prim.lambda] #3) That type has an operator() which is by default const, unless mutable is used in the lambda expression ([expr.prim.lambda] #5) -->source:https://stackoverflow.com/questions/13699515/copied-const-object-in-lambda-closure-not-mutable -->note that the result is not right if you don't use &sum because for_each function ignores the return value of the lambda body as its stated in the for_each function
+    //! use this too: https://stackoverflow.com/questions/7627098/what-is-a-lambda-expression-in-c11  -->  The generated operator() is const by default, with the implication that captures will be const when you access them by default. This has the effect that each call with the same input would produce the same result, however you can mark the lambda as mutable to request that the operator() that is produced is not const.
+    //! check this site for reasons: https://www.cplusplus.com/forum/general/279685/
+    std::cout << "sum: " << sum << std::endl;
+    std::cout << std::endl;
+
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///ACCESS RIGHTS FOR MEMBERS
+/*
+! The access rights of members determine how the members are accessible
+! from outside of the class. Access rights give the author of the class the ability
+! to decide which class members are accessible to the users of the class, i.e., the
+! interface and which members are for internal use of the class (the
+! implementation.) C++ has three different access rights:
+
+! public : No restriction.
+! protected : Access from inside the class and from all derived classes.
+! private : Access only from within the class.
+
+! The name of every class member has an associated member access. When
+! the name of the member is used anywhere in a program, its access is checked,
+! and if it does not satisfy the access rules, then the program does not compile.
+
+Rules #
+! 1. All members of a class are private by default.
+! 2. All members of a struct or union are public by default.
+! 3. Access rights are determined by the last used access specifier.
+! 4. The access specifier can be used multiple times.
+
+! The public and protected members are the interfaces of the class, the
+! private members are the implementations of the class.
+
+
+Embedded declarations #
+! All entities of a class are visible inside the class. The scope operator( :: ) must
+! be used from outside the class to access the elements of the class.
+*/
+
+struct Account{
+    enum Status{Ok m Error};
+    void setStatus(Status s);
+...
+};
+
+Account* acc = new Account;
+acc->setStatus(Account::Status::Ok);
+
+
+///Example
+#include<iostream>
+
+class Account{
+public:
+    Account(double b): balance(b){
+        ++Account::transactions; //vase access be member haye class mishe az :: estefade kard garche fek nakunam niazi bashe
+    }
+
+    void deposits(double amt)
+    {
+        balance = calcBalance(amt);
+    }
+
+    void withdraw(double amt)
+    {
+        balance = calcBalance(-amt);
+    }
+
+    double getBalance() const{
+        return balance;
+    }
+
+    static int transactions;
+private:
+    double calcBalance(double amt) //az in fun faghat dar khode class dare use mishe pas private bashe behtare
+    {
+        ++Account::transactions;
+        return balance +=amt;
+    }
+    double balance;
+};
+int Account::transactions = 0;
+
+
+
+int main()
+{
+    Account acc(100.0);
+    acc.deposits(50.0);
+    acc.deposits(25.15);
+    acc.withdraw(30);
+
+    std::cout<<acc.getBalance()<<"\n";
+    std::cout<<Account::transactions<<"\n"; //vase access be memeber static niazi be object nist va mishe ba :: access kuni
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///FREIND DECLARATIONS
+/*
+! The friend declaration appears in a class body and grants a function or
+! another class access to private and protected members of the class where the
+! friend declaration appears. Friends have access to all members of a class.
+
+! A class can declare friendship to a function, a method, or a class.
+
+Rules: #
+! 1. The declaration of a friendship can be anywhere.
+! 2. The access specifier of the friendship declaration is not relevant.
+! 3. Friendship cannot be inherited (your friend’s children are not your
+! friends).
+! 4. Friendship is not transitive (a friend of your friend is not your friend).
+
+
+! Access specifiers have no effect on the meaning of friend declarations (they
+! can appear in private: or in public: sections, with no differences).
+
+! A friend has full control of the internals of a class.
+
+*/
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///STRUCTS AND UNIONS
+/*
+STRUCTS --> user-defined data type that allows us to combine data items of
+different kinds.
+
+! Structs are almost identical to classes. The default access specifier for a struct
+! is public instead of private .
+
+! The default inheritance specifier is public instead of private .
+
+! Structs should be used instead of classes if the data type is a simple data
+! holder.
+*/
+struct Person{
+    int age;
+    int size;
+    int weight;
+    std::string name;
+};
+
+
+/*
+UNIONS --> special data type where all members start at the same address. A
+union can only hold one type at a time, therefore, we can save memory. A
+tagged union is a union that keeps track of its types. By using union, we are
+actually pointing to the same memory for the different data types used.
+
+Rules #
+Unions are special class types.
+! Only one member can exist at any one point in time.
+! They only need as much space as the biggest member requires, which saves memory.
+! The access specifier is public by default.
+! They cannot have virtual methods like with Inheritance.
+! They cannot have references.
+! They cannot be inherited nor inherited from.
+*/
+
+#include<iostream>
+
+union Value{
+    int i ;
+    double d;
+};
+
+
+int main()
+{
+    Value v = {123}; //now v holds an int
+    std::cout<<v.i<<"\n"; //write 123
+    v.d = 987.654; //now v holds a double
+    std::cout<<v.d<<"\n"; //write 987.654
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///ABSTRACT BASE CLASSES AND INHERITANCE
+
+/*
+INHERITANCE--> 
+! When one class inherits from another class, it gets all its attributes and  members from the parent class.
+! The inherited classes use the attributes and methods from the parent class and can add new ones.
+
+! Polymorphism: when the characteristics of an object behave differently at run time.
+*/
+
+/*
+Abstract base classes #
+
+An abstract class is a class that has at least one pure virtual function. A pure virtual function (virtual void function() = 0 ) is a function that must be implemented by a derived class if that class should not be abstract.
+Only for completeness reasons. An abstract class can provide implementations of pure virtual functions. A derived class can, therefore, use these implementations.
+
+Interfaces should usually consist of public pure virtual functions and a default/empty virtual destructor (virtual ~My_interface() = default).  If you don't follow the rule, something bad may happen.
+
+! These are classes that have at least one pure virtual method. By declaring a
+! method virtual and adding = 0 to the method declaration, we can make a
+! method pure virtual.
+
+! Abstract Base Classes are typically used as interfaces for class hierarchies
+! because they determine the implementation of the derived classes.
+
+
+
+Rules #
+! 1. A class that has a pure virtual method cannot be instantiated.
+! 2. A derived class has to implement the pure virtual method in order to get instantiated.
+! 3. A pure virtual method can be implemented in a class.
+! 4. We must implement a pure virtual destructor. Idiom in C++ is used to declare an abstract base class.
+*/
+class Account{
+    public:
+        virtual double estimateReturn() = 0;
+};
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///ACCESS RIGHTS OF INHERITANCE
+/*
+! A class can be derived public , protected , or private from its base class.
+! For classes, the default access right is private ; for structs, it’s public . SO class BankAcc: Acc{...} is the same as class BankAcc: private Acc{...}
+
+
+Is-a relations: public, protected, private
+! The derived class and the base class have an is-a relationship. Public
+inheritance is called an is-a relationship because the derived class has the
+same interface as the base class. The derived class is a specialization of the
+base class.
+
+
+public #
+class BankAccount: public Account{ ...
+
+! public and protected members in the Account class are public and protected in the BankAccount class.
+
+
+protected #
+class BankAccount: protected Account{ ...
+
+! public and protected members in the Account class are protected in the BankAccount class.
+
+
+private #
+class BankAccount: private Account{ ...
+
+! public and protected members in the Account class are private in the BankAccount.
+*/
+//ye mesal az khodam
+#include<iostream>
+
+class A{
+    public:
+        int a;
+    private:
+        int b;
+    protected:
+        int c;
+};
+
+
+class B: protected A
+{
+    public:
+        int d;
+        void show()
+        {
+        }
+    private:
+        int e;
+    protected:
+        int f;
+        //int c; //c va a mian to protected class B
+        //int a;
+};
+
+
+class C: public B
+{
+    public:
+        int g;
+        //int d;
+    private:
+        int h;
+    protected:
+        int i;
+        //int f
+        //int c
+        //int a;
+};
+
+int main()
+{
+    B b;
+    b.a =10; //nemishe be a dastrasi dasht chun shode protected member class B
+}
+
+///Example --> inheritance
+/*
+The public member functions of the Account class are available to the
+BankAccount class and we can access them using the . operator (line 46).
+*/
+#include<iostream>
+
+class Account{
+    public:
+        Account(double b): balance(b){}
+
+        void deposit(double amt){
+            balance+=amt;
+        }
+
+        void withdraw(double amt){
+            balance -= amt;
+        }
+
+        double getBalance() const{
+            return balance;
+        }
+
+    private:
+        double balance;
+};
+
+class BankAccount : public Account{
+    public:
+        BankAccount(double b): Account(b){}
+
+        void addInterest()
+        {
+            deposit(getBalance()*0.05);
+        }
+};
+
+int main()
+{
+    BankAccount bankAcc(100.0);
+    bankAcc.deposit(50.0);
+    bankAcc.deposit(25.15);
+    bankAcc.withdraw(30);
+    bankAcc.addInterest();
+
+    std::cout<<bankAcc.getBalance()<<"\n";
+
+}
+
+
+
+///Abstract base class inheritance #
+#include<iostream>
+
+class Abstract{
+    public:
+        virtual ~Abstract() = 0; //! We have created a pure virtual class Abstract and we cannot make an instance of this class as it will give an error.
+};
+
+Abstract::~Abstract(){};
+
+class Concrete: public Abstract{};
+
+
+class HumanBeing{
+    public:
+        HumanBeing(const std::string n): name(n)
+        {
+            std::cout<<name<<" created. "<<"\n";
+        }
+
+        virtual std::string getSex() const = 0; //! getSex is pure virtual so we cannot make an instance of HumanBeing in main .
+    private:
+        std::string name;
+};
+
+class Man: public HumanBeing{
+    public:
+        Man(const std::string n): HumanBeing(n){};
+
+        std::string getSex() const{ //! The instances of the Man and Woman classes can access the getSex function by using the . operator and they must be overridden in derived classes.
+            return "Male";
+        }
+        
+};  
+
+class Woman: public HumanBeing{
+    public:
+        Woman(const std::string n): HumanBeing(n){};
+
+        std::string getSex() const{
+            return "Female";
+        }
+};
+
+int main()
+{
+    //Abstract abstract;//ERROR chun abstract hast
+    Concrete concrete;
+
+    //HumanBeing humanBeing("soheil");//ERROR chun abstract hast
+
+    Man soheil("soheil");
+    Woman katy("katy");
+
+    std::cout<<soheil.getSex()<<"\n";
+    std::cout<<katy.getSex()<<"\n";
+}
+
+
+///access right in inheritance
+
+class Account{
+    public:
+        int pub{0};
+    protected:
+        int prot{0};
+    private:
+        int pri{0};
+};
+
+
+class PubAccount : public Account{
+    public:
+        PubAccount(){
+            pub + prot; // public + protected
+        }
+
+};
+
+class ProtAccount: protected Account{
+    public:
+        ProtAccount(){
+            pub + prot; // protected + protected
+        }
+};
+
+class PriAccount: private Account{
+    public:
+        PriAccount(){
+            pub + prot; //private + private
+        }
+};
+int main()
+{
+    PubAccount pubAccount;
+    ProtAccount proAccount;
+    PriAccount priAccount;
+}
+
+
+
+/*
+A class hierarchy is constructed to represent a set of hierarchically organized
+concepts (only). Typically, base classes act as interfaces. There are two major
+uses for hierarchies, often named implementation inheritance and interface
+inheritance.
+
+Read the class hierarchy rules in the given links:
+! SOME VERY GOOD LINKS IN THE PDF. CHECK IT OUT.
+! The explnation in core c++ guidlines may be hard so you can use this website : https://www.modernescpp.com/index.php/c-core-guidelines-class-hierarchies which explains the core guidlines better.
+
+! Another good explanation: https://www.quantstart.com/articles/C-Virtual-Destructors-How-to-Avoid-Memory-Leaks/
+
+! Best example is this: https://ladydebug.com/blog/2020/11/23/valgrind-testing-of-non-virtual-destructor/
+*/
+
+#include<iostream>
+#include<string>
+#include<memory>
+
+class Goof{
+    public:
+        virtual void printName() const = 0;
+        ~ Goof() //! delete the virtual word and see the leak- derived destructor won't be called so string s destructor can't be called //but valrgind can't catch that - maybe its just undefined beahvior--> check: https://stackoverflow.com/questions/56792856/why-absence-of-a-virtual-destructor-doesnt-cause-a-memory-leak BUT ITHINK THIS IS A BETTER EXAMPLE:https://ladydebug.com/blog/2020/11/23/valgrind-testing-of-non-virtual-destructor/
+        {
+            std::cout<<"Goof Destructor"<<"\n";
+        }
+};
+
+class Derived: public Goof
+{
+    public:
+        Derived(std::string name): s(name){};
+        void printName() const override
+        {
+            std::cout<<s<<"\n";
+        }
+
+        ~Derived(){
+            std::cout<<"Derived Destructor"<<"\n";
+        }
+    private:
+        std::string s; //! khodam: class string khodesh destructor dare ke az tarigh destructor class derived trigger mishe fek kunam
+};  
+
+int main()
+{
+    Goof* p {new Derived{"Here we go"}};
+    p->printName();
+    delete p;
+
+    std::cout<<"bsdf"<<"\n";
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// CONSTRUCTOR INHERITANCE
+/*
+! When we call a constructor, a series of constructor calls may be triggered.
+! This guarantees that each base object is properly initialized. The sequence of
+! constructor calls starts with the base class and ends with the most derived
+! class.
+
+struct A{};
+struct B: A{};
+struct C: B{};
+C c;    // A -> B -> C
+
+
+
+Inheriting base class constructors:
+! Only the default constructor is inherited, the copy and move constructor
+! will not be inherited.
+
+! The derived class inherits all the characteristics of the constructors:
+!       public , protected , and private access specifiers.
+!       explicit and constexpr declarations.
+Default arguments for parameters of the constructor of a base class will not be
+inherited.
+! The derived class gets an additional constructor, having one parameter for the
+! default argument. Constructors with the same parameters as constructors in
+! the derived class will not be inherited.
+
+! By inheriting constructors from the base class, there is the danger of
+! forgetting to initialize the attributes of the derived class.
+*/
+class Account
+{
+    public:
+        Account(double amount{});
+};
+
+
+class BankAccount: public Account{
+    public:
+        using Account::Account;
+};
+BankAccount bankAccount(100.0);
+
+
+
+
+///Example Constructor inheriting
+/*
+! For integers and strings, it called the Base class constructors and for doubles, it calls the Derived class constructor.
+*/
+#include<iostream>
+#include<string>
+
+class Base{
+    public:
+        Base() = default; //! ME: comment this and see what happens --> I think when you don't have feault constructor and when you instantiate the derived class constructor can't create base class constructor implicitly (because you have another constructor in base class). the point is you have to instantiate base c oconstructor in dervied constructor or else you have to have default constructor or you don't have anything at all so that compiler do that for you impliicitly
+        Base(int i ){
+            std::cout << "Base::Base("<< i << ")" << std::endl;
+        }
+        Base(std::string s){
+            std::cout << "Base::Base("<< s << ")" << std::endl;
+        }
+};
+
+
+class Derived: public Base
+{
+    public:
+        using Base::Base;
+        Derived(double d)//! inja besorate implicit default constructor Base ro seda mizane
+        {
+            std::cout << "Derived::Derived("<< d << ")" << std::endl;
+        }
+};
+
+int main()
+{
+    // inheriting Base
+    Derived(2011); // Base::Base(2011)
+
+    // inheriting Base 
+    Derived("C++0x"); //Base::Base(C++0x)
+
+    // using Derived
+    Derived(0.33); //Derived::Derived(0.33)
+}
+
+///Example
+/*
+Inherit public , protected , and private identifiers from a class using
+constructor inheritance. The constructors inherited from the base class keep
+their access level. The inherited class restricts them.
+What does that mean for the inherited constructors?
+*/
+class Base{
+    public:
+        Base(int){};
+};
+class DerivePublic: public Base{
+    using Base::Base;
+};
+class DeriveProtected: protected Base{
+    using Base::Base;
+};
+class DerivePrivate: private Base{
+    using Base::Base;
+};
+int main(){
+    Base(1);
+    DerivePublic(1);
+    DeriveProtected(1);
+    DerivePrivate(1);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///BASE CLASS INITIALIZER
+/*
+! When a base class has no default constructor, the derived class must explicitly
+! call a constructor. The base class initializer is typically used with class
+! initializers.
+*/
+class Account{
+    public:
+        Account(double amount, std::string cur){};
+};
+
+class BankAccount: public Account{
+    public:
+        BankAccount(double r , std::string cur): Account(r, cur){}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///DESTRUCTOR CALLS
+/*
+! When we (directly or indirectly) call a destructor, a series of destructor calls may be triggered.
+
+! This guarantees that each base object is properly destructed.
+
+! The sequence of destructor calls starts with the most derived class and
+! ends with the base class.
+
+! We might have noticed that constructor calls follow the exact opposite
+! behavior of destructor calls.
+*/
+struct A{};
+struct B: A{};
+struct C: B{};
+C* c = new C; // A -> B -> C
+delete c;     // ~c -> ~A -> ~A
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -72,7 +72,7 @@ int main()
 
     //HumanBeing humanBeing("grimm"); //Error
 
-    Man schmidt("Scmidt");
+    Man schmidt("Schmidt");
     Woman huber("huber");
 
     std::cout<<schmidt.getSex()<<"\n";
