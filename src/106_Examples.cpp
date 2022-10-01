@@ -19,12 +19,7 @@ Explanation #
 ! By using a pointer to the Base class, we can access the overridden
 ! methods of the derived class.
 
-
 */
-
-
-
-
 #include<iostream>
 
 class Sort{

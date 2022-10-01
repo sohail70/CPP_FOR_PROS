@@ -1996,11 +1996,551 @@ struct B: A{};
 struct C: B{};
 C* c = new C; // A -> B -> C
 delete c;     // ~c -> ~A -> ~A
+
+/*
+Exercise #
+Which initialization order of the attributes of a class is guaranteed?
+The order of their declaration or the invocation order in the constructor.
+Discuss the consequences of each possibility.
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///VIRTUAL METHODS
+/*
+! Virtual methods are used to adjust the behavior of an object while
+! keeping its interface stable.
+
+! In order to override a method, it must be declared virtual .
+
+! For documentation purposes, the overriding method will also be declared as
+! virtual .
+*/
+
+struct Account{
+    virtual void withdraw(double amt){balance -= amt;}
+}
+...
+
+struct BankAccount: Account{
+    virtual void withdraw(double amt){
+        if((balance - amt) > 0.0 ) balance -= amt;
+...
+
+
+
+/*
+! The dynamic type of the object determines which version of a virtual method
+! will be called. To apply virtuality, a pointer or a reference is needed.
+*/
+
+
+BankAccount bankAccount(100.0);
+Account* aPtr = &bankAccount;
+aPtr -> withdraw(50.0);
+Account& aRef = bankAccount;
+aRef.withdraw(50.0);
+
+
+
+/* 
+Polymorphic: #
+! The method is selected at run-time.
+! This is often called dynamic or late binding.
+
+
+Rules: #
+! Constructor must not be virtual.
+! Virtual methods do not have to be overridden.
+! Methods declared as virtual stay virtual in the hierarchy.
+! The parameters in the overridden method must be identical to the parameters in the virtual method.
+! The specifier virtual is required to obtain polymorphic behavior.
+! Private methods can be overridden in the base class.
+
+! There’s a difference between overriding and overloading.
+
+Virtual destructors #
+! When destructing an object via a pointer or a reference to a base class, the
+! destructors must be virtual.
+*/
+Account* aptr;
+Account* aptr = new BankAccount(100.0);
+delete aptr;
+Account& aRef = BankAccount(200.0);
+
+
+
+///Example:
+#include<iostream>
+
+
+class Account{
+    public:
+        Account(double amt):balance(amt){}
+
+        virtual void withdraw(double amt){
+            balance-=amt;
+        }
+
+        double getBalance() const
+        {
+            return balance;
+        }
+    protected:
+        double balance;
+};
+
+
+class BankAccount: public Account{
+    public:
+        BankAccount(double amt):Account(amt){}
+
+        virtual void withdraw(double amt) override
+        {   
+            if(balance>amt)    balance-=amt;
+        }
+};  
+
+/*
+! We can access the withdraw function of the BankAccount class using three
+! approaches
+
+Reference to the derived class from the base class
+Assigning a pointer of the base class to the newly created object using new keyword of the derived class
+Using the reference of the base class, we can point to the derived class object. 
+
+*/
+//Kolan method haye bank account call mishe chun dynamic object male bank account hast harchand ke  be type Account assign esh karde bashim
+int main()
+{
+    BankAccount bankAccount(100.0);
+    Account* aPtr = &bankAccount; //pointer to stack (which is useless I suppose and its for demonstration purpose )
+    
+    aPtr->withdraw(50);
+    std::cout<<aPtr->getBalance()<<"\n";
+
+    BankAccount* bankAccount2 = new BankAccount(100.0);
+    Account* aPtr2 = bankAccount2;
+    aPtr2->withdraw(50);
+    std::cout<<aPtr2->getBalance()<<"\n";
+
+    BankAccount bankAccount3(100.0);
+    Account& aRef = bankAccount3;
+    aRef.withdraw(50);
+    std::cout<<aRef.getBalance()<<"\n";
+}
+
+
+
+/*
+
+When a virtual method is invoked through a pointer or a reference to an
+object, late binding occurs.
+
+Answer the following questions.
+
+Which phenomena happens with early binding? khodam: static binding happens at compile time  in contrary to the late binding which happens at runtime  ---> static binding is faster than late binding
+What’s the name of the phenomena?
+Why do we have early binding in C++?
+
+
+
+! dar kol late binding ba virtual func ha faghat ba pointer va reference mitone anjam beshe na ba dot operator
+! ba early binding (compile time binding )  polymorphic beahviour nadarim
+*/
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///OVERRIDE AND FINAL
+/*
+override:
+
+reason ---> a common bug present in object hierarchies:  methods that should override methods of base classes but do not.
+! The compiler verifies if the override annotated method actually overrides a
+! virtual method of a base class.
+
+! The compiler checks for
+    ! The parameters and the return type.
+    ! The constness of the method.
+    ! The virtuality of the method.
+
+
+
+final #
+! final is the right tool for the job if a virtual method should not be
+! overridden.
+
+! final supports two use cases. First, we can declare a method that cannot be
+! overridden; second, we can define a class that cannot be derived from. The
+! compiler uses the same rules to determine if a method of child class overrides
+! a method of a base class. Of course, the strategy is inverted because the final
+! specifier should disallow the overriding of a method. Therefore, the compiler
+! checks the parameters of the method, its return type, and any const/volatile
+! qualifiers.
+
+
+! A virtual method declared final must not be overridden.
+
+The compiler checks for:
+! The parameter.
+! The return type.
+! The constness of the method.
+! Methods and classes declared as final are an optimization
+! opportunity for the compiler.
+! Both variants are equivalent:
+void func() final;
+virtual void func() final override;
+*/
+
+
+
+/*
+A good question that I came accros:
+https://stackoverflow.com/questions/11477523/when-and-why-to-declare-member-variables-on-the-heap-c
+*/
+
+///! EXAMPLE ---> This example is important because it's confusing! --> albate oonghadrha ham confusing nist chun be method haye private fagaht az tarig methode 
+///! public mitonim dastrasi peyda kunimvali khob on baksh ke mishe private virtual func haro override kard ye khorde confusing hast.
+/*
+C++ has access control, but not visibility control. This means that private functions are visible but not accessible. A private virtual function can be overridden by derived classes, but can only be called from within the base class. This is actually a useful construct when you want that effect.
+https://root.cern/TaligentDocs/TaligentOnline/DocumentRoot/1.0/Docs/books/WM/WM_132.html#:~:text=C%2B%2B%20has%20access%20control%2C%20but,from%20within%20the%20base%20class.
+
+*/
+#include<iostream>
+
+class Sort{
+    public://!a public virtual method processData in the Sort class which calls the three private methods.
+        virtual void processData()
+        {
+            readData();
+            sortData();
+            writeData();
+        }
+    
+    private: //!three private virtual methods 
+        virtual void readData(){}
+        virtual void sortData() = 0;
+        virtual void writeData(){}
+
+};
+
+
+class QuickSort: public Sort
+{
+    private: //! We have overridden the methods of the Sort class in QuickSort .
+        void readData()
+        {
+            std::cout<<"readData"<<"\n";
+        }
+
+        void sortData()
+        {
+            std::cout<<"sortData"<<"\n";
+        }
+
+        void writeData()
+        {
+            std::cout<<"writeData";
+        }
+};
+
+
+int main()
+{
+    Sort* sort = new QuickSort;
+    sort->processData();
+
+}
+
+
+
+
+///Example ---> override  
+class Base{
+    void func1();
+    virtual void func2(float);
+    virtual void func3() const;
+    virtual long func4(int);
+
+    virtual void f();
+};
+
+
+class Derived: public Base{
+    // ill-formed: no virtual method func1 exists
+    virtual void func1() override; //!ERROR
+
+    // ill-formed: bad type
+    virtual void func2(double ) override;//!ERROR
+
+    // ill-formed: const missing
+    virtual void func3() override;//!ERROR
+
+    // ill-formed: wrong return type
+    virtual int func4(int) override;//!ERROR
+
+    // well-formed: f override base::f
+    virtual void f() override;
+};
+
+int main()
+{
+    Base base;
+    Derived derived;
+}
+
+
+///EXAMPLE ---> final 
+class Base{
+    virtual void h(int) final;
+
+    virtual void g(long int);
+};
+
+
+class Derived: public Base{
+
+    // ill-formed: base method declared final
+    virtual void h(int); //!ERROR
+
+    // well-formed: a new virtual function
+    virtual void h(double);
+
+    virtual void g(long int ) final; //inja eshkali nadare ke override shode vali chun dg final kardim dg class paeentar dg nemitone overrideehs kune
+};
+
+class DerivedDerived: public Derived{
+    virtual void g(long int); //!ERROR
+};
+
+struct FinalClass final{};
+struct DerivedClass: FinalClass{}; //!ERROR
+
+int main()
+{
+    Base base;
+    Derived derived;
+    DerivedDerived derivedDerived;
+
+    FinalClass finalClass;
+    DerivedClass derivedClass;
+}
+
+///Exercise ----> class hierarchy in template method design pattern --> reason : http://www.gotw.ca/publications/mill18.htm
+/*
+
+!ME: interesting question: https://stackoverflow.com/questions/2170688/private-virtual-method-in-c
+! Herb Sutter has very nicely explained it here.
+
+! Guideline #2: Prefer to make virtual functions private.
+
+! This lets the derived classes override the function to customize the behavior as needed, without further exposing the virtual functions directly by making them callable by derived classes (as would be possible if the functions were just protected). The point is that virtual functions exist to allow customization; unless they also need to be invoked directly from within derived classes' code, there's no need to ever make them anything but private
+
+! Another opposing answer!!!--> (Opposed to Herb Sutter quoted by Prasoon Saurav in his answer, the C++ FAQ Lite recommends against private virtuals, mostly because it often confuses people.)--> https://isocpp.org/wiki/faq/strange-inheritance#private-virtuals
+
+*/
+#include<iostream>
+
+
+class Sort{
+
+    public:
+        Sort(){}
+
+        virtual void processData()
+        {
+            readData();
+            sortData();
+            writeData();
+        }
+    private:
+        virtual void readData() {}
+        virtual void sortData() = 0;
+        virtual void writeData(){};
+    
+};
+
+
+class QuickSort: public Sort{
+    private:
+        void readData() override
+        {
+            std::cout<<"readData"<<"\n";
+        }
+        void sortData() override
+        {
+            std::cout<<"sortData"<<"\n";
+        }
+
+        void writeData()
+        {
+            std::cout<<"writeData"<<"\n";
+        }
+};
+
+class BubbleSort: public Sort{
+    private:
+        void sortData() override
+        {
+            std::cout<<"sortData \n";
+        }
+};
+
+int main()
+{    
+    Sort* sort = new QuickSort;
+    sort->processData();
+    delete sort;
+
+    Sort* sort2 = new BubbleSort;
+    sort2->processData();
+    delete sort2;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///MULTIPLE INHERITANCE
+/*
+Multiple inheritance is a feature of some object-oriented computer
+programming languages in which an object or class can inherit characteristics
+and features from more than one parent object or class. It is different from
+single inheritance, where an object or class may only inherit from one
+particular object or class.
 
+General rules of multiple inheritance #
+
+! By providing a list of base classes will result in multiple inheritance.
+
+! Multiple inheritance is a generalization of single inheritance.
+! The access rights for each base class can be specified individually.
+
+! For classes, access rights are private by default; for structs, access rights
+! are public by default .
+
+! If a derived class has more than one instance of a base class, the invocation of
+! its members is ambiguous.
+
+Diamond-problem #
+! The diamond problem is an ambiguity that arises when two classes B and C
+! inherit from A , and class D inherits from both B and C . If there is a method
+! in A that B and C have overridden, and D does not override it, then 
+! whichversion of the method does D inherit: that of B , or that of C ?
+
+It is called the “diamond problem” because of the shape of the class
+inheritance diagram in this situation. Class A is at the top, both B and C are
+separately beneath it, and D joins the two together at the bottom to form a
+diamond shape.
+
+
+! Ambiguous calls to members can be resolved by using the scope
+! operator.
+
+Virtual base class #
+! A virtual base class solves the problem of multiple inheritance because the
+! derived class gets only one base class. When a class is derived virtually from a
+! base class it becomes a virtual base class.
+
+!ME: A single copy of its data members is shared by all the base classes that use virtual base.
+*/
+
+///Example 1
+#include<iostream>
+
+class Account{
+    public:
+        Account(double amt): amount(amt){}
+
+        double getBalance() const{
+            return amount;
+        }
+
+        private:
+            double amount;
+};
+
+
+class BankAccount: public Account{
+    public:
+        BankAccount(double amt): Account(amt) {}
+};  
+
+class WireAccount: public Account{
+    public:
+        WireAccount(double amt): Account(amt) {}
+};
+
+class CheckingAccount: public BankAccount, public WireAccount //This class has access to the getBalance methods of both classes.
+{
+    public:
+        CheckingAccount(double amt): BankAccount(amt), WireAccount(amt){} //! Khodam: alan har kodum az az ina ke initilize beshe , har kodom ye bar Account(amt) ro ejra mikunan ke in baes mishe do bar in kar anjam begire
+};
+
+int main()
+{
+    CheckingAccount checkingAccount(100.0);
+    checkingAccount.getBalance(); //!ERROR---> ambiguous function
+    /*
+    If we try to call the getBalance method using the instance of
+    CheckingAccount class, it will give us an error, but if we call it with the
+    name of the base class along with the scope operator :: then it works
+    fine.
+    */
+    std::cout<<checkingAccount.BankAccount::getBalance()<<"\n";
+    std::cout<<checkingAccount.WireAccount::getBalance()<<"\n";
+}
+
+
+///Example 2: Virtual multiple inheritance
+/*
+we have created all the classes in the same way as
+in example 1.
+
+The only thing that we have changed is virtually inheriting the Account
+class in the BankAccount and WireAccount classes.
+
+By inheriting these classes virtually, we can now access the
+checkAccount.getBalance() method of the Account class.
+*/
+#include<iostream>
+
+class Account{
+    public:
+        Account(double amt): amount(amt){}
+
+        double getBalance() const{
+            return amount;
+        }
+
+        private:
+            double amount;
+};
+
+
+class BankAccount: virtual public Account{ //!vaghti virtual mizari yani ye done double amount ijad beshe kafie dar heyn process of inheritance
+    public:
+        BankAccount(double amt): Account(amt) {}
+};  
+
+class WireAccount: virtual public Account{
+    public:
+        WireAccount(double amt): Account(amt) {}
+};
+
+class CheckingAccount: public BankAccount, public WireAccount
+{
+    public:
+        CheckingAccount(double amt): BankAccount(amt), WireAccount(amt),Account(amt){} //! Account(amt) is added also --> c++ rule ---> initialization of the base virtual class is the responsibility of the most derived class so it needs to initialize amount --> data vaghe do ta class balan initailization eshon ignore mishe!
+};
+
+int main()
+{
+    CheckingAccount checkingAccount(100.0);
+    checkingAccount.getBalance(); 
+
+    std::cout<<checkingAccount.BankAccount::getBalance()<<"\n";
+    std::cout<<checkingAccount.WireAccount::getBalance()<<"\n";
+}
+
+/* tozihate khoob:
+https://www.youtube.com/watch?v=7APovvvftQs&ab_channel=BoQian
+Tl;dr entehaye video---> alan age class Account,BankAccount,WireAccount pure abstract class bodand va implementation nadashtan onvaght  dg moshkele duplication o in chizhayee ke dar multiple inheritance hast dg nabood va niazi be virtual inheritance nist
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
