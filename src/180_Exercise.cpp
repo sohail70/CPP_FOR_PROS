@@ -7,7 +7,7 @@ Implement it with the index operator and the at function.
 
 Explanation #
 ! On line 13, we are trying to access arr[5] which is out of the bounds of the
-! array. However, this line will not throw an exception and we would neverknow if we have accessed an index that is not in the range. On line 20, we
+! array. However, this line will not throw an exception and we would never know if we have accessed an index that is not in the range. On line 20, we
 ! tried to access the same index using the at function. This function checks if
 ! the index being accessed is out of bounds or not. Since 5 is greater than the
 ! size of the array, it throws an exception and terminates the program.

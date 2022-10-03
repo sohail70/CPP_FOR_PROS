@@ -8,13 +8,15 @@ In this lesson, we'll discuss the method used to access the elements of a contai
 ! the range, the end iterator refers to a position past the range. With the iterator
 ! pair cont.begin() and cont.end() we can modify the elements.
 
+
+Functions available for iterators in containers:
 Iterator                            Description
 cont.begin() and cont.end()         Pair of iterators to iterate forward.
 cont.cbegin() and cont.cend()       Pair of iterators to iterate const forward.
 cont.rbegin() and cont.rend()       Pair of iterators to iterate backward.
 cont.crbegin() and cont.crend()     Pair of iterators to iterate const backward.
 
-Functions available for iterators in containers
+
 
 Now I can modify the container.
 */
