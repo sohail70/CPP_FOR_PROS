@@ -1,24 +1,36 @@
-#include<chrono>
 #include<iostream>
 #include<memory>
-static const long long numInt = 100000000;
+
+class A{
+    public:
+        A(double aa):a(aa){};
+        void set_a(double aa) 
+        {
+            a = aa;   
+        }
+
+        double get_a() 
+        {
+            return a; 
+        }
+
+    private:
+        double a;
+};  
+
+
+
+void func(A* pointer_to_a)
+{
+    pointer_to_a->set_a(10);
+}
+
+
 
 int main()
 {
-    auto start = std::chrono::system_clock::now();
-
-    for (long long i = 0; i <numInt ; ++i)
-    {
-        //int* tmp(new int(i));
-        //delete tmp;
-        //std::shared_ptr<int> tmp(new int(i));
-       //std::shared_ptr<int> tmp(std::make_shared<int>(i));
-        //std::unique_ptr<int> tmp(new int(i));
-        std::unique_ptr<int> tmp(std::make_unique<int>(i));
-    }
-
-    std::chrono::duration<double> dur = std::chrono::system_clock::now()-start;
-    std::cout<<"time native: "<< dur.count()<<" seconds"<<"\n";
-
-
+    auto shared = std::make_shared<A>(3.0);
+    func(shared.get());
+    std::cout<<shared.use_count()<<"\n";
+    std::cout<<shared->get_a()<<"\n";
 }

@@ -74,7 +74,7 @@ void useWidget(Widget& wid);
 
 
 R.33 #
-! Sometimes a function wants to reseat a Widget . In this case, pass thestd::unique_ptr<Widget> by a non-const reference.
+! Sometimes a function wants to reseat a Widget . In this case, pass the std::unique_ptr<Widget> by a non-const reference.
 
 #include<memory>
 #include<utility>
