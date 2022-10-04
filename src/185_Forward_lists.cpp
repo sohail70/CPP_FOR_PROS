@@ -106,9 +106,6 @@ int main()
     for(auto i = forw.cbegin() ; i != forw.cend() ;++i) cout<<*i<<" ";
     //1000 7 6 5 4 3 2 1
     cout<<"\n";
-
-
-
 }
 
 

@@ -378,17 +378,551 @@ int main()
     arr.at(5) = 5;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///VECTOR
+/*
+! Vectors are more refined version of arrays. They simplify the insertion and deletion of values.
+! std::vector needs the header <vector>
+! it’s length can be adjusted at runtime.
+! std::vector supports pointer arithmetic.
+*/
+for (int i= 0; i < vec.size(); ++i){
+    std::cout << vec[i] == *(vec + i) << std::endl; // true
+}
 
+
+/*
+! std::vector<int> vec(10); ---> vector with capacity 10
+! std::vector<int> vec{10}; ---> vector with element of 10 --> curly braces are interpreted as initializer lists so the sequence constructor is used.
+! std::vector<int>(10, 2011); ---> 10 elements initialized to 2011
+*/
+#include<vector>
+#include<utility>
+
+int main()
+{
+    std::vector<int> first;
+    std::vector<int> second(4,2011);
+    std::vector<int> third(second.begin(),second.end());
+    std::vector<int> forth(second);
+    std::vector<int> fifth(std::move(second));
+    std::vector<int> sixth{1,2,3,4,5};
+}
+
+/*
+Size vs. Capacity
+! The number of elements an std::vector has usually take up less space than
+! what is already reserved. There is a simple reason for this. With extra
+! memory already allocated, the size of the std::vector can increase without
+! an expensive allocation of new memory.
+
+There are a few methods for smartly handling memory:
+Memory management of std::vector :
+
+METHOD                                      DESCRIPTION
+vec.size()                                  Returns the number of elements of vec .
+vec.capacity()                              Returns the number of elements, which vec can have without reallocation.
+vec.resize(n)                               vec will be increased to n elements.
+vec.reserve(n)                              Reserve memory for at least n elements.
+vec.shrink_to_fit()                         Reduces capacity of vec to the size.
+
+! The call vec.shrink_to_fit() is not binding. That means the runtime can
+! ignore it. But on popular platforms, I always observed the desired behavior.
+
+*/
+#include <iostream>
+#include <vector>
+int main(){
+    std::vector<int> intVec1(5, 2011);
+    intVec1.reserve(10);
+    std::cout << intVec1.size() << std::endl; // 5
+    
+    std::cout << intVec1.capacity() << std::endl; // 10
+    intVec1.shrink_to_fit();
+    std::cout << intVec1.capacity() << std::endl; // 5
+    std::vector<int> intVec2(10);
+    std::cout << intVec2.size() << std::endl; // 10
+    std::vector<int> intVec3{10};
+    std::cout << intVec3.size() << std::endl; // 1
+    std::vector<int> intVec4{5, 2011};
+    std::cout << intVec4.size() << std::endl;
+    return 0;
+}
+
+
+/*
+! std::vector vec has a few methods to access its elements. vec.front() , yields
+! the first element, and vec.back() yields the last element of vec . To read or
+! write the (n+1)-th element of vec , we can use the index operator vec[n] or
+! the method vec.at(n) . The second one checks the boundaries of vec , so that
+! we eventually get an std::range_error exception.
+
+Besides the index operator, std::vector offers additional methods to assign,
+insert, create or remove elements. See the following overview.
+
+Modify the elements of a std::vector:
+
+Method                          Description
+vec.assign( ... )               Assigns one or more elements, a range or an initializer list.
+vec.clear()                     Removes all elements from vec .
+vec.emplace(pos, args ... )     Creates a new element before pos with the args in vec and returns the new position of the element.
+vec.emplace_back(args ... )     Creates a new element in vec with args ... .
+vec.erase( ... )                Removes one element or a range and returns the next position.
+vec.insert(pos, ... )           Inserts one or more elements, a range or an initializer list and returns the new position of the element.
+vec.pop_back()                  Removes the last element.
+vec.push_back(elem)             Adds a copy of elem at the end of vec .
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///DEQUE ---> DOUBLE ENDED QUEUE ---> sequence of arrays
+/*
+std::deque needs the header <deque>
+quite similar to std::vector  ---> has three additional methods deq.push_front(elem) , deq.pop_front() , and deq.emplace_front(args... ) to add or remove elements at the beginning.
+
+*/
+
+#include<iostream>
+#include<deque>
+
+using namespace std;
+
+class MyInt{
+    private:
+        int myInt;
+    public:
+        MyInt(int i): myInt(i){};
+        friend ostream& operator << (ostream& os , const MyInt& m)
+        {
+            os << m.myInt<<" ";
+            return os;
+        }  
+};
 
 
+int main()
+{
+    std::deque<MyInt> myIntDeq;
+
+    myIntDeq.push_back(MyInt(5));
+    myIntDeq.emplace_back(1);
+    std::cout<<myIntDeq.size()<<"\n"; //2
+
+    std::deque<int> intDeq;
+
+    intDeq.assign({1,2,3});
+    for(auto v: intDeq) cout<<v<<" "; //1 2 3
+    cout<<endl;
+
+    intDeq.insert(intDeq.begin(), 0);
+    for (auto v: intDeq) cout << v << " "; //0 1 2 3
+    cout<<endl;
+
+
+    intDeq.insert(intDeq.begin()+4,4);
+    for(auto v: intDeq) cout<<v<<" "; //0 1 2 3 4
+    cout<<endl;
+
+    intDeq.insert(intDeq.end(), {5,6,7,8,9,10,11});
+    for(auto v: intDeq) cout<<v<<" "; //0 1 2 3 4 5 6 7 8 9 10 11
+    cout<<endl;
+
+    for(auto revIt = intDeq.rbegin(); revIt != intDeq.rend();++revIt)
+        std::cout<<*revIt<<" "; //11 10 9 8 7 6 5 4 3 2 1 0
+    cout<<endl;
+
+    intDeq.pop_back();
+    for(auto v: intDeq) cout<< v<<" "; //0 1 2 3 4 5 6 7 8 9 10
+    cout<<endl;
+
+    intDeq.push_front(-1);
+    for(auto v: intDeq) cout<<v<<" "; //-1 0 1 2 3 4 5 6 7 8 9 10
+    cout<<endl;
+
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///LISTS
+/*
+! std::list is a doubled linked list. std::list needs the header <list> .
 
+Although it has a similar interface to std::vector or std::deque , std::list is
+quite different from both of them. That’s due to its structure.
+
+std::list makes the following points unique:
+! It supports no random access.
+! Accessing an arbitrary element is slow because we might have to iterate through the whole list.
+! Adding or removing an element is fast, if the iterator points to the right place.
+! If we add or remove an element, the iterator remains valid.
+
+
+Because of its special structure, std::list has a few special methods.
+Special methods of std::list #
+
+Method                  Description
+lis.merge(c)            Merges the sorted list c into the sorted list lis , so that lis remains sorted.
+lis.merge(c, op)        Merges the sorted list c into the sorted list lis , so that lis remains sorted. Uses op as sorting criteria.
+lis.remove(val)         Removes all elements from lis with value val .
+lis.remove_if(pre)      Removes all elements from lis ,fulfilling the predicate pre .
+lis.splice(pos, ... )   Splits the elements in lis before pos . The elements can be single elements, ranges or lists.
+lis.unique()            Removes adjacent element with the same value.
+lis.unique(pre)         Removes adjacent elements, fulfilling the predicate pre .
+*/
+
+#include<iostream>
+#include<list>
+#include<algorithm>
+
+
+int main()
+{
+    std::list<int> list1{15,2,18,19,4,15,1,3,18,5,
+                    4,7,17,9,16,8,6,6,17,1,2};
+    list1.sort();
+    for(auto l: list1) std::cout<<l<<" ";
+    //1 1 2 2 3 4 4 5 6 6 7 8 9 15 15 16 17 17 18 18 19
+    std::cout<<std::endl;
+
+    list1.unique();
+    for(auto l: list1) std::cout<<l <<" ";
+    //1 23 4 5 6 7 8 9 15 16 17 18 19
+    std::cout<<"\n";
+
+    std::list<int> list2{10,11,12,13,14};
+
+    list1.splice(std::find(list1.begin(),list1.end(),15),list2);
+
+    for(auto l: list1) std::cout<<l<<" ";
+    //  1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19
+
+    std::cout<<"\n";
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///FORWARD LISTS
+/*
+! std::forward_list is a singly linked list, which needs the header
+! <forward_list> . std::forward_list has a drastically reduced interface and is
+! optimized for minimal memory requirements.
 
 
+
+! std::forward_list has a lot in common with std::list :
+! It doesn’t support the random access.
+
+! The access of an arbitrary element is slow because in the worst case, we
+! have to iterate forward through the whole list.
+
+! To add or remove an element is fast, if the iterator points to the right
+! place.
+
+! If we add or remove an element, the iterator remains valid.
+
+! Operations always refer to the beginning of the std::forward_list or the
+! position past the current element.
+
+
+
+! Being able to iterate through an std::forward_list forward has a great
+! impact. The iterators cannot be decremented and therefore, operations like -
+! - (decrement) on iterators are not supported. For the same reason,
+! std::forward_list has no backward iterator. std::forward_list is the only
+! sequential container which doesn’t know its size.
+
+! std::forward_list has a very special domain
+! std::forward_list is the replacement for single linked lists. It’s
+! optimized for minimal memory management and performance if the
+! insertion, extraction, or movement of elements only affects adjacent elements. This is typical for sorting algorithms.
+
+
+
+The following are the special methods of std::forward_list :
+Special methods of std::forward_list
+
+
+Method                              Description
+forw.before_begin()                 Returns an iterator before the first element.
+forw.emplace_after(pos, args...)    Creates an element after pos with the arguments args... .
+forw.emplace_front(args...)         Creates an element at the beginning of forw with the arguments args... .
+forw.erase_after(pos, ...)          Removes from forw the element pos or a range of elements, starting with pos .
+forw.insert_after(pos, ...)         Inserts new elements after pos .These elements can be single elements, ranges or initialiser lists.
+forw.merge(c)                       Merges the sorted forward list c into the sorted forward list forw , so that forw keeps sorted.
+forw.merge(c, op)                   Merges the forward sorted list c into the forward sorted list forw , so that forw keeps sorted. Uses op as sorting criteria.
+forw.splice_after(pos, ...)         Splits the elements in forw before pos . The elements can be single elements, ranges or lists.
+forw.unique()                       Removes adjacent element with the same value.
+forw.unique(pre)                    Removes adjacent elements, fulfilling the predicate pre .
+
+*/
+#include<iostream>
+#include<algorithm>
+#include<forward_list>
+
+using std::cout;
+
+int main()
+{
+    std::forward_list<int> forw;
+    std::cout<<forw.empty()<<"\n"; //1 (1 denoted true)
+
+    forw.push_front(7);
+    forw.push_front(6);
+    forw.push_front(5);
+    forw.push_front(4);
+    forw.push_front(3);
+    forw.push_front(2);
+    forw.push_front(1);
+
+    for(auto i: forw) cout<<i <<" "; //1 2 3 4 5 6 7
+    cout<<"\n";
+
+
+    forw.erase_after(forw.before_begin()); //faghat element aval ro erase mikune
+    cout<<forw.front(); //2
+    cout<<"\n";
+
+    std::forward_list<int> forw2;
+    forw2.insert_after(forw2.before_begin(),1);
+    forw2.insert_after(++forw2.before_begin(),2);
+    forw2.insert_after(++(++(forw2.before_begin())),3);
+    forw2.push_front(1000);
+    for(auto i = forw2.cbegin(); i != forw2.cend();++i) cout<<*i <<" "; //1000 1 2 3
+    // 1 2 2 3 3 4 5 6 7 1000
+    cout<<"\n";
+
+    auto IteratorTo5 = std::find(forw.begin(), forw.end(), 5);
+    forw.splice_after(IteratorTo5 , std::move(forw2)); //az index ee ke 5 toshe splice mikune va forw2 to mirize on vasat 
+    for(auto i = forw.cbegin(); i != forw.cend(); ++i) cout<<*i<<" "; //2 3 4 5 1000 1 2 
+    // 1000 7 6 5 4 3 3 2 2 1
+    cout<<"\n";
+
+    forw.unique();
+    for(auto i = forw.cbegin() ; i != forw.cend() ;++i) cout<<*i<<" ";
+    //1000 7 6 5 4 3 2 1
+    cout<<"\n";
+}
+
+/*
+! std::forward_list has a reduced interface, so we can’t use it with a lot of
+! STL algorithms.
+
+What are the characteristics of the methods of std::forward_list ?
+
+
+Pointers that might help us to solve the above exercise:
+
+Accessing of an arbitrary element is slow because we might have to
+iterate forward through the whole list.
+
+To add or remove an element is fast, if the iterator points to the right
+place.
+
+If we add or remove an element, the iterator remains valid.
+
+We can only move forward with the iterator.
+
+
+*/
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///ASSOCIATIVE CONTAINERS
+/*
+C++ has eight different associative containers. Four of them are associative
+containers with sorted keys: std::set , std::map , std::multiset , and
+std::multimap . The other four are associative containers with unsorted keys:
+std::unordered_set , std::unordered_map , std::unordered_multiset , and
+std::unordered_multimap . The associative containers are special containers.
+That means they support all of the operations described in the chapter
+containers in general.
 
+
+
+Overview
+All eight ordered and unordered containers have one thing in common: they
+associate a key with a value. We can use the key to get the value. To classify
+the associative containers, three simple questions need to be answered:
+! Are the keys sorted?
+! Does the key have an associated value?
+! Can a key appear more than once?
+
+! The following table with 2 3 = 8 rows gives the answers to the three questions.
+! The answer to a fourth question is in the table. How fast is the access time of a
+! key in the best case?
+
+
+
+Characteristics for associative containers
+
+Associative container               sorted          Associated value        More Identical keys         Access time
+
+std::set                            Yes             No                      No                          Logarithmic
+
+std::unordered_set                   no              no                      no                          constant
+
+std::map                            yes             yes                     no                          logarithmic
+
+std::unordered_map                  no              yes                     no                          constant
+
+std::multiset                       yes             no                      yes                         logarithmic
+
+std::unordered_multiset             no              no                      yes                         constant
+
+std::multimap                       yes             yes                     yes                         logarithmic
+
+std::unordered_multimap             no              yes                     yes                         constant
+
+
+
+! Since C++98, there have been ordered associative containers; with C++11 came
+! unordered associative containers. Both classes have a very similar interface.
+! That’s the reason that the following code sample is identical for std::map and
+! std::unordered_map . To be more precise, the interface of std::unordered_map is
+! a superset of the interface of std::map . The same holds true for the remaining
+! three unordered associative containers. So, porting your code from the
+! ordered to unordered containers is quite easy.
+
+
+! We can initialize the containers with an initializer list and add new elements
+! with the index operator. To access the first element of the key-value pair p ,
+! we have p.first , and for the second element, we have p.second . p.first is
+! the key and p.second is the associated value of the pair.
+
+
+
+! There is a subtle difference between the two program executions: The keys of
+! the std::map are ordered, the keys of the std::unordered_map are unordered.
+! The question is: Why do we have such similar containers in C++? We already
+! pointed this in the table above. The reason is so often the same: performance.
+! The access time to the keys of an unordered associative container is constant
+! and therefore independent of the size of the container. If the containers are
+! big enough, the performance difference is significant. Have a look at the
+! section about performance.
+
+*/
+#include<iostream>
+#include<map>
+#include<unordered_map>
+
+
+// std::map
+
+int main()
+{
+    std::map<std::string,int> m{{"Dijkstra", 1972},{"Scott",1976}};
+    m["Ritchie"] = 1983;
+    std::cout<< m["Ritchie"];           //1983
+    std::cout<<"\n";
+
+    for(auto p : m) std::cout<<"{"<<p.first<<","<<p.second<<"}";    //{Dijkstra,1972},{Ritchie,1983},{Scott,1976}
+    std::cout<<"\n";
+
+    m.erase("Scott");
+    for(auto p:m) std::cout<<"{"<<p.first <<","<<p.second<<"}"; //{Dijkstra,1972},{Ritchie,1983}
+    std::cout<<"\n";
+
+    m.clear();
+    std::cout<<m.size()<<std::endl; //0
+
+    //std::unordered_map
+
+    std::unordered_map<std::string , int> um {{"Dijkstra",1972},{"Scott",1976}};
+    um["Ritchie"] = 1983;
+    std::cout<<um["Ritchie"];       //1983
+    std::cout<<"\n";
+
+
+    for(auto p : um) std::cout<<"{"<<p.first <<","<<p.second<<"}";  //{Ritchie,1983},{Scott,1976},{Dijkstra,1972}
+    std::cout<<"\n";
+
+    um.erase("Scott");
+    for(auto p : um) std::cout<< "{" <<p.first <<","<<p.second<<"}";    //{Ritchie,1983},{Dijkstra,1972}
+    std::cout<<"\n";
+
+    um.clear();
+    std::cout<<um.size()<<std::endl;    //0
+
+
+}
+
+///Insertion and Deletion in associative containers -->  values are inserted and deleted based on the keys they have.
+/*
+
+! The insertion ( insert and emplace ) and deletion ( erase ) of elements in
+! associative containers is similar to the rules of an std::vector. For an
+! associative container that can have a key only once, the insertion fails if the
+! key is already in the container. Additionally, ordered associative containers
+! support a special function ordAssCont.erase(key) , which removes all pairs
+! with the key and returns their number. See the usage of the function below.
+*/
+#include<iostream>
+#include<set>
+#include<array>
+
+
+int main()
+{
+    std::multiset<int> mySet{3,1,5,3,4,5,1,4,4,3,2,2,7,6,4,3,6};
+
+    for(auto s:mySet) std::cout<<s<<" "; //1 1 2 2 3 3 3 3 4 4 4 4 5 5 6 6 7
+    std::cout<<"\n";
+
+    mySet.insert(8);
+    std::array<int,5> myArr{10,11,12,13,14};
+    mySet.insert(myArr.begin(),myArr.begin()+3);
+    mySet.insert({22,21,20});
+    for(auto s:mySet) std::cout<<s<<" ";
+    // 1 1 2 2 3 3 3 3 4 4 4 4 5 5 6 6 7 10 11 12 20 21 22
+    std::cout<<"\n";
+
+    std::cout<<mySet.erase(4); //4
+    mySet.erase(mySet.lower_bound(5),mySet.upper_bound(15)); //fek kunam ---> az index avali ke 5 hast va akharin index ee ke 15 hast ro erase kun har chi in beyn hast
+    for(auto s:mySet) std::cout<<s<<" ";
+    // 1 1 2 2 3 3 3 3 20 21 22
+    std::cout<<"\n";
+}
+
+/*
+! All four ordered containers are parametrized by their type, their allocator,
+! and their comparison function. The containers have default values for the
+! allocator and the comparison function, depending on the type. The
+! declaration of std::map and std::set show this very nicely.
+
+template < class key, class val, class Comp= less<key>,
+            class Alloc= allocator<pair<const key, val> >
+class map;
+
+template < class T, class Comp = less<T>,
+            class Alloc = allocator<T> >
+class set;
+
+The declaration of both associative containers shows that std::map has an
+associated value. The key and the value are used for the default allocator:
+allocator<pair<const key, val>> . With a little bit more imagination, we can
+derive more from the allocator. std::map has pairs of the type
+std::pair<const key, val> . The associated value val does not matter for the
+sort criteria: less<key> . All observations also hold for std::multimap and
+std::multiset .
+
+*/
+
+/*
+There are special rules for the key and the value of an ordered associative
+container.
+
+The key has to be
+! sortable (by default, they are sorted in ascending order)
+! copyable and moveable
+
+The value has to be
+! default constructible
+! copyable and moveable
+
+The key associated with the value builds a pair p so that we get a member
+with p.first and the value with p.second .
+*/
+#include<iostream>
+#include<map>
+
+int main()
+{
+    std::multimap<char, int> multiMap = {{'a',10},{'a',20},{'b',30}}; //chun multimap hast mitone key tekrari ham dashte bashe
+    for(auto p: multiMap) std::cout<< "{" << p.first << "," <<p.second<<"} ";   // {a,10},{a,20},{b,30}
+    std::cout<<"\n";
+    return 0;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,6 @@
 /* PDF 179
 Vectors
-! Vectors are more re ned version of arrays. They simplify the insertion and deletion of values.
+! Vectors are more refined version of arrays. They simplify the insertion and deletion of values.
 
 ! std::vector is a homogeneous container, for which it’s length can be adjusted
 ! at runtime. std::vector needs the header <vector> . As it stores its elements
@@ -14,7 +14,7 @@ for (int i= 0; i < vec.size(); ++i){
 ! Make sure to distinguish the round and curly braces in the creation of an
 ! std::vector
 
-! If we construct a std::vector , we mustkeep a few things in mind. The
+! If we construct a std::vector , we must keep a few things in mind. The
 ! constructor with round braces in the following example creates an
 ! std::vector with a capacity of 10 elements, while the constructor with
 ! curly braces creates an std::vector with the element 10.
