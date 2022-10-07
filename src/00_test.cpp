@@ -1,10 +1,9 @@
 #include<iostream>
-#include<set>
-#include<array>
+#include<map>
 
 
 int main()
 {
-        std::multiset<int> mySet{3,1,5,3,4,5,1,4,4,3,2,2,7,6,4,3,6};
-        auto a = mySet.lower_bound(5);
+        std::map<int,std::string,std::greater<int>> int2string{{5,"five"},{4,"four"},{7,"seven"},{6,"six"}};
+        for(auto m : int2string){std::cout<<m.first<<" "<<m.second <<"\n";}
 }
