@@ -972,11 +972,496 @@ int main()
     for(auto p : int2Str) std::cout<<"{" <<p.first<<","<<p.second<<"} ";// {7,seven} {6,six} {5,five} {4,four} {3,three} {2,two} {1,one}
     std::cout<<"\n";
 }
+
+
+
+/*
+The functions listed in this lesson make searching more efficient.
+
+! Ordered associative containers are optimized for searching, and so they offer
+! unique search functions.
+
+Special search functions of the ordered associative containers
+Seach function                      Description
+ordAssCont.count(key)               Returns the number of values with the key .
+ordAssCont.find(key)                Returns the iterator of key in ordAssCont . If there is no key in ordAssCont it returns ordAssCont.end()
+ordAssCont.lower_bound(key)         Returns the iterator to the first key in ordAssCont in which key would be inserted.
+ordAssCont.upper_bound(key)         Returns the last position of key in ordAssCont in which key would be inserted.
+ordAssCont.equal_range(key)         Returns the range ordAssCont.lower bound(key) and ordAssCont.upper_bound(key) in a std::pair .
+
+*/
+
+
+
+#include<iostream>
+#include<set>
+
+int main()
+{
+    std::multiset<int> mySet{3,1,5,3,4,5,1,4,4,3,2,2,7,6,4,3,6};
+
+    for(auto s:mySet) std::cout<<s<<" "; //1 1 2 2 3 3 3 4 4 4 4 5 5 6 6 7
+    std::cout<<"\n";
+
+    mySet.erase(mySet.lower_bound(4),mySet.upper_bound(4));
+    for(auto s: mySet) std::cout<< s<<" "; //1 1 2 2 3 3 3 3 5 5 6 6 7
+    std::cout<<"\n";
+
+    std::cout << mySet.count(3) << std::endl; // 4
+    std::cout << *mySet.find(3) << std::endl; // 3
+    std::cout << *mySet.lower_bound(3) << std::endl; // 3
+    std::cout << *mySet.upper_bound(3) << std::endl; // 5
+    auto pair= mySet.equal_range(3);
+    std::cout << "(" << *pair.first << "," << *pair.second << ")"; // (3,5)
+    std::cout<<"\n";
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///MAP
+/*
+! std::map is by far the most frequently used associative container. The reason
+! is simple; It combines
+! adequate(https://www.educative.io/collection/page/10370001/51289822047764
+! 48/5935479880941568) with a very convenient interface. We can access its
+! elements via the index operator. If the key doesn’t exist, std:map creates a
+! key-value pair. For the value, the default constructor is used.
 
+
+! Consider std::map as a generalization of std::vector
+! Often, std::map is called an associative array because std::map supports
+! the index operator like a sequential container. The subtle difference is
+! that its index is not restricted to a number like in the case of
+! std::vector . Its index can be almost any arbitrary type.
+! The same observations hold for its namesake std::unordered_map .
+
+! In addition to the index operator, std::map supports the at method.The
+! compiler checks the at function to make sure it is not out of bounds. So if the
+! request key doesn’t exist in the std::map , an std::out_of_range exception is
+! thrown.
+
+
+*/
+
+
+///Exercise
+/*
+The program how frequently a word is used in a text.This is a typical use-case
+for an ordered associative container.
+Execute the program
+Analyze the source code
+*/
+
+#include <regex>
+#include <algorithm>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <map>
+#include <unordered_map>
+#include <utility>
+
+
+using str2Int = std::unordered_map<std::string ,size_t>;
+using intAndWords = std::pair<std::size_t,std::vector<std::string>>;
+using int2Words = std::map<std::size_t , std::vector<std::string>>;
+
+//count the frequency of each word
+
+str2Int wordCount(const std::string& text){
+    std::regex wordReg(R"(\w+)");
+    std::sregex_iterator wordItBegin(text.begin(), text.end(), wordReg);
+    const std::sregex_iterator wordItEnd;
+    str2Int allWords;
+    for(; wordItBegin != wordItEnd; ++wordItBegin){
+        ++allWords[wordItBegin->str()];
+    }
+    return allWords;
+}
+
+// get to all frequencies the appropriate words
+int2Words frequencyOfWords(str2Int& wordCount)
+{
+    int2Words freq2Words;
+    for(auto wordIt : wordCount){
+        auto freqWord = wordIt.second;
+        if( freq2Words.find(freqWord) == freq2Words.end()){
+            freq2Words.insert(intAndWords(freqWord,{wordIt.first}));
+        }
+        else{
+            freq2Words[freqWord].push_back(wordIt.first);
+        }
+    }
+    return freq2Words;
+}
+
+int main(int argc, char* argv[]){
+    std::cout << std::endl;
+    // get the filename
+    std::string myFile = "Test.rtf";
+    // open the file
+    std::ifstream file(myFile, std::ios::in);
+    if (!file){
+    std::cerr << "Can't open file "+ myFile + "!" << std::endl;
+    exit(EXIT_FAILURE);
+    }
+    // read the file
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string text(buffer.str());
+    // get the frequency of each word
+    auto allWords= wordCount(text);
+    std::cout << "The first 20 (key, value)-pairs: " << std::endl;
+    auto end= allWords.begin();
+    std::advance(end, 20);
+    for (auto pair= allWords.begin(); pair != end; ++pair){
+    std::cout << "(" << pair->first << ": " << pair->second << ")";
+    }
+    std::cout << "\n\n";
+    std::cout << "allWords[Web]: " << allWords["Web"] << std::endl;
+    std::cout << "allWords[The]: " << allWords["The"] << "\n\n";
+    std::cout << "Number of unique words: ";
+    std::cout << allWords.size() << "\n\n";
+    size_t sumWords=0;
+    for (auto wordIt: allWords) sumWords+= wordIt.second;
+    std::cout << "Total number of words: " << sumWords <<"\n\n";
+    auto allFreq= frequencyOfWords(allWords);
+    std::cout << "Number of different frequencies: " << allFreq.size() << "\n\n";
+    std::cout << "All frequencies: ";
+    for (auto freqIt: allFreq) std::cout << freqIt.first << " ";
+    std::cout << "\n\n";
+    std::cout << "The most frequently occurring word(s): " << std::endl;
+    auto atTheEnd= allFreq.rbegin();
+    std::cout << atTheEnd->first << " :";
+    for (auto word: atTheEnd->second) std::cout << word << " ";
+    std::cout << "\n\n";
+    std::cout << "All word which appears more then 1000 times:" << std::endl;
+    auto biggerIt= std::find_if(allFreq.begin(), allFreq.end(), [](intAndWords iAndW){return iAndW;});
+    if (biggerIt == allFreq.end()){
+    std::cerr << "No word appears more then 1000 times !" << std::endl;
+    exit(EXIT_FAILURE);
+    }
+    else{
+    for (auto allFreqIt= biggerIt; allFreqIt != allFreq.end(); ++allFreqIt){
+    std::cout << allFreqIt->first << " :";
+    for (auto word: allFreqIt->second) std::cout << word << " ";
+    std::cout << std::endl;
+    }
+    }
+    std::cout << std::endl;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///UNORDERED ASSOCIATIVE CONTAINERS
+/*
+The main difference between unordered and ordered associative containers is the idea of sorted keys
+
+key ---> hash function ---> buckets
+
+! With the new C++11 standard, C++ has four unordered associative containers:
+! std::unordered_map , std::unordered_multimap , std::unordered_set , and
+! std::unordered_multiset . They have a lot in common with their namesakes,
+! the ordered associative containers. The difference is that the unordered ones
+! have a richer interface and their keys are not sorted.
+
+This shows the declaration of an std::unordered_map .
+*/
+template<class key , class val , class Hash = std::hash<key>> ,  
+                class KeyEqual = std::equal_to<key>,
+                class Alloc = std::allocator<std::pair<const key, val>>>
+class unordered_map;
+
+/*
+! Like std::map , std::unordered_map has an allocator, but std::unordered_map
+! needs no comparison function. Instead std::unordered_map needs two
+! additional functions: One to determine the hash value of its key:
+! std::has<key> and a second to compare the keys for equality:
+! std::equal_to<key> . Because of the three default template parameters, we
+! only have to provide the type of the key and the type of the value. For
+! example, declaration of std::unordered_map would be
+! std::unordered_map<char,int> unordMap .
+*/
 
 
+/*
+This lesson is about the different properties of keys and values in this type of associative container.
+There are special rules for the key and value of an unordered associative
+container.
+
+The key has to be
+! comparable
+! available as hash value
+! copyable or moveable
+
+The value has to be
+! default constructible
+! copyable or moveable
+*/
+
+
+/*
+The unordered associative container type is more optimized when compared to its ordered sibling.
+
+! Performance. That’s the simple reason why the unordered associative
+! containers were so long missed in C++. In the example below, one million
+! randomly created values are read from an std::map and std::unordered_map
+! with 10 million values. The impressive result is that the linear access time of
+! an unordered associative container is 20 times faster than the access time of
+! an ordered associative container. That is just the difference between constant
+! and logarithmic complexity O(log n) of these operations.
+
+! Note: The given code might take more time to execute than normal.
+
+*/
+
+#include<chrono>
+#include<iostream>
+#include<map>
+#include<random>
+#include<unordered_map>
+
+
+static const long long mapSize = 1000000;
+static const long long accSize = 1000000;
+
+int main()
+{
+    std::map<int,int> myMap;
+    std::unordered_map<int,int> myHash;
+
+    for(long long i = 0 ; i<mapSize ; ++i)
+    {
+        myMap[i] = i;
+        myHash[i] = i;
+    }
+
+    std::vector<int> randValues;
+    randValues.reserve(accSize);
+
+    // random values
+    std::random_device seed;
+    std::mt19937 engine(seed());
+    std::uniform_int_distribution<> uniformDist(0,mapSize);
+    for(long long i =0 ; i <accSize ; ++i) randValues.push_back(uniformDist(engine));
+
+    auto start = std::chrono::system_clock::now();
+    for(long long i = 0 ; i<accSize ; ++i){
+        myMap[randValues[i]];
+    }
+
+    std::chrono::duration<double> dur = std::chrono::system_clock::now() - start;
+    std::cout<<"time for std::map "<<dur.count() <<" seconds" <<std::endl;
+
+    auto start2 = std::chrono::system_clock::now();
+    for(long long i = 0 ; i<accSize ; ++i){
+        myHash[randValues[i]];
+    }
+    std::chrono::duration<double> dur2 = std::chrono::system_clock::now() - start2;
+    std::cout<<"time for std::unordered_map: "<<dur2.count() <<" seconds"<<"\n";
+    
+}
+
+
+
+/*
+Here, we will understand why hash functions are essential in unordered associative pairs.
+
+
+! The reason for the constant access time of an unordered associative container
+! is the hash function. The hash function maps the key to its value (its hash
+! value). A hash function is good if it produces as few collisions as possible and
+! equally distributes the keys onto the buckets. Because the execution of the
+! hash function takes a constant amount of time, accessing the elements in the
+! base case is also constant.
+
+
+The hash function #
+! is already defined for the built-in types like boolean, natural numbers, and floating point numbers.
+! is available for std::string and std::wstring .
+! generates, for a C string, const char a hash value of the pointer address.
+! can be defined for user-defined data types.
+
+
+! For user-defined types, which are used as a key for an unordered associative
+! container, we have to keep two requirements in mind: They need a hash
+! function and an equality operator to be defined in order for them to be
+! compared.
+
+yani alan dar mesale paeen masalan MyHash ro pak kuni error mide --> pas ham ye MyHash niaze va Ham niaze operator== overload beshe 
+*/
+
+#include<iostream>
+#include<unordered_map>
+
+
+struct MyInt{
+    MyInt(int v): val(v){}
+    bool operator== (const MyInt& other) const{ //
+        return val == other.val;
+    }
+
+    int val;
+};
+
+
+struct MyHash{
+    std::size_t operator()(MyInt m) const{
+        std::hash<int> hashVal;
+        return hashVal(m.val);
+    }
+};
+
+
+std::ostream& operator << (std::ostream& st, const MyInt& myIn){
+    st<<myIn.val;
+    return st;
+}
+
+
+int main()
+{
+    typedef std::unordered_map<MyInt, int , MyHash> MyIntMap;
+    MyIntMap myMap{{MyInt(-2),-2} , {MyInt(-1),-1} , {MyInt(0),0} , {MyInt(1),1}};
+
+    for(auto m: myMap) std::cout<<"{" <<m.first<<" , "<<m.second<<"}"; // {MyInt(1),1} {MyInt(0),0} {MyInt(-1),-1} {MyInt(-2),-2}
+
+    std::cout<<myMap[MyInt(-2)]<<"\n"; //-2
+
+}
+
+
+/*
+
+The unordered associative containers store their indices in buckets. In which
+bucket the index goes depends on the hash function, which maps the key to
+the index. If different keys are mapped to the same index, it’s called a
+collision. The hash function tries to avoid this.
+
+Indices are typically stored in the bucket as a linked list. Since the access to
+the bucket is constant, the access to the linked list in the bucket is linear. The
+number of buckets is called capacity, the average number of elements for each
+bucket is called the load factor. In general, the C++ runtime generates new
+buckets if the load factor is greater than 1. This process is called rehashing and
+can also be triggered explicitly:
+
+With the method max_load_factor , you can read and set the load factor in
+order to influence the probability of collisions and rehashing. I want to
+emphasize one point in the short example below: the key 500 is in the 5th
+bucket at first, but after rehashing, it is in the 500th bucket.
+
+*/
+
+#include<iostream>
+#include<unordered_set>
+using namespace std;
+
+void getInfo(const unordered_set<int>& hash)
+{
+    cout<<hash.bucket_count()<<"\n";
+    cout<<hash.load_factor()<<"\n";
+}
+
+
+int main()
+{
+   // Create an unoredered set and initialize it with the array
+    // Set will contain only random elements
+
+    int arr[100];
+    for(int i = 0 ; i <100 ; i++)
+        arr[i] = (rand() % 100) +1 ;
+    unordered_set<int> hash(arr,arr+sizeof(arr)/sizeof(int));
+    cout<<hash.max_load_factor()<<"\n"; 
+
+    getInfo(hash);//hash.bucket_count(): 103hash.load_factor(): 0.660194
+    cout<<endl;
+
+    hash.insert(500);
+    cout<<hash.bucket(500)<<"\n"; //88
+
+    getInfo(hash);//hash.bucket_count(): 103hash.load_factor(): 0.669903
+    cout<<endl;
+
+    hash.rehash(500);
+
+    getInfo(hash);//hash.bucket_count(): 503hash.load_factor(): 0.137177500
+    cout<<endl<<hash.bucket(500); //hash.bucket(500): 500
+
+
+}
+
+
+///Exercise
+/*
+Problem statement #
+
+Use std::unordered_set instead of std::unordered_map and
+std::unordered_multiset instead of std::unordered_multimap in the program.
+std::set , std::multiset , and all variations are only degenerated
+versions of std::map and std::multimap , missing the associated value.
+
+
+
+Explanation #
+In lines 10 and 11, we have initialized an std::unordered_multiset with
+some integer values and also an std::unordered_set , which contains
+unique values which are repeated in std::unordered_multiset .
+
+In lines 25 and 26, we inserted the value -1000 in both sets.
+
+In lines 54 and 55, we have erased the value 5 from both sets.
+
+In lines 61 and 62, we have used the clear function which deletes all
+elements from both of the sets.
+*/
+
+#include <iostream>
+#include <set>
+#include <unordered_set>
+int main(){
+    std::cout << std::endl;
+    // constructor
+    std::unordered_multiset<int> multiSet{1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+    std::unordered_set<int> uniqSet(multiSet.begin(), multiSet.end());
+    // show the difference
+    std::cout << "multiSet: ";
+    for(auto m : multiSet) std::cout << m << " ";
+    std::cout << std::endl;
+    std::cout << "uniqSet: ";
+    for(auto s : uniqSet) std::cout << s << " ";
+    std::cout << std::endl << std::endl;
+    // insert elements
+    multiSet.insert(-1000);
+    uniqSet.insert(-1000);
+    std::set<int> mySet{-5, -4, -3, -2, -1};
+    multiSet.insert(mySet.begin(), mySet.end());
+    uniqSet.insert(mySet.begin(), mySet.end());
+    // show the difference
+    std::cout << "multiSet: ";
+    for(auto m : multiSet) std::cout << m << " ";
+    std::cout << std::endl;
+    std::cout << "uniqSet: ";
+    for(auto s : uniqSet) std::cout << s << " ";
+    std::cout << std::endl << std::endl;
+    // search for elements
+    auto it = uniqSet.find(5);
+    if (it != uniqSet.end()){
+    std::cout << "uniqSet.find(5): " << *it << std::endl;
+    }
+    std::cout << "multiSet.count(5): " << multiSet.count(5) << std::endl;
+    std::cout << std::endl;
+    // remove
+    int numMulti = multiSet.erase(5);
+    int numUniq = uniqSet.erase(5);
+    std::cout << "Erased " << numMulti << " times 5 from multiSet." << std::endl;
+    std::cout << "Erased " << numUniq << " times 5 from uniqSet." << std::endl;
+    // all
+    multiSet.clear();
+    uniqSet.clear();
+    std::cout << std::endl;
+    std::cout << "multiSet.size(): " << multiSet.size() << std::endl;
+    std::cout << "uniqSet.size(): " << uniqSet.size() << std::endl;
+    std::cout << std::endl;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
