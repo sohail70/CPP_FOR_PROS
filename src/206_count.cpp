@@ -30,6 +30,6 @@ int main()
     std::cout << std::endl;
     std::string str{"abcdabAAAaefaBqeaBCQEaadsfdewAAQAaafbd"};
     std::cout << "count: " << std::count(str.begin(), str.end(), 'a') << std::endl;
-    std::cout << "count_if: " << std::count_if(str.begin(), str.end(), [](char a){ return std::toupper(a);}); //Khodam toupper roneveshtam make sense ham nemikune!
+    std::cout << "count_if: " << std::count_if(str.begin(), str.end(), [](char a){ return std::isupper(a);}); //Khodam isupper ro neveshtam
     std::cout << std::endl;
 }

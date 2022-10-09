@@ -1719,20 +1719,373 @@ int main(){
     std::cout << std::endl;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///Non-modifying algorithms --> used for searching and counting elements , compare given ranges, or search for ranges given any range.
+/*
+
+Returns an iterator to the first element that matches the search criteria.
+
+InpIt find(InpIt first, InpI last, const T& val)
+InpIt find(ExePol pol, FwdIt first, FwdIt last, const T& val)
+InpIt find_if(InpIt first, InpIt last, UnPred pred)
+InpIt find_if(ExePol pol, FwdIt first, FwdIt last, UnPred pred)
+InpIt find_if_not(InpIt first, InpIt last, UnPred pre)
+InpIt find_if_not(ExePol pol, FwdIt first, FwdIt last, UnPred pre)
+
+
+Returns an iterator to the first element in the range:
+FwdIt1 find_first_of(InpIt1 first1, InpIt1 last1, FwdIt2 first2, FwdIt2 last2)
+FwdIt1 find_first_of(ExePol pol, FwdIt1 first1, FwdIt1 last1, FwdIt2 first2, FwdIt2 last2)
+FwdIt1 find_first_of(InpIt1 first1, InpIt1 last1, FwdIt2 first2, FwdIt2 last2, BiPre pre)
+FwdIt1 find_first_of(ExePol pol, FwdIt1 first1, FwdIt1 last1, FwdIt2 first2, FwdIt2 last2, Bi
+
+Returns identical, adjacent elements in a range:
+FwdIt adjacent_find(FwdIt first, FwdIt last)
+FwdIt adjacent_find(ExePol pol, FwdIt first, FwdIt last)
+FwdIt adjacent_find(FwdIt first, FwdI last, BiPre pre)
+FwdIt adjacent_find(ExePol pol, FwdIt first, FwdI last, BiPre pre)
+
+The algorithms require input or forward iterators as arguments and return an
+iterator on the element when successfully found. If the search is not
+successful, they return an end iterator.
+
+*/
+#include<iostream>
+#include<algorithm>
+#include<set>
+#include<list>
+
+using namespace std;
+
+
+
+bool isVowel(char c){
+    string myVowels{"aeiouaou"};
+    set<char> vowels(myVowels.begin(),myVowels.end());
+    return (vowels.find(c) != vowels.end());
+}
+
+
+int main()
+{
+    list<char> myCha{'a','b','c','d','e','f','g','h','i','j'};
+    int cha[] = {'A','B','C'};
+
+    cout <<*find(myCha.begin(),myCha.end(),'g')<<endl; //g
+    cout << *find_if(myCha.begin(), myCha.end(), isVowel) << endl; //a
+    cout << *find_if_not(myCha.begin(), myCha.end(), isVowel) << endl; //b
+
+    auto iter= find_first_of(myCha.begin(), myCha.end(), cha, cha + 3);
+    if (iter == myCha.end()) cout << "None of A, B or C." << endl; // None of A, B or C.
+
+    auto iter2= find_first_of(myCha.begin(), myCha.end(), cha, cha+3, 
+            [](char a, char b){ return toupper(a) == toupper(b); }); //compare mikune  first1-last1 ro ba first2-last2 ke age upper har do baham barabar bood true beshe va find kune
+
+    if (iter2 != myCha.end()) cout << *iter2 << endl; //a
+    auto iter3= adjacent_find(myCha.begin(), myCha.end());
+
+    if (iter3 == myCha.end()) cout << "No same adjacent chars." << endl;
+    // No same adjacent chars.
+    auto iter4= adjacent_find(myCha.begin(), myCha.end(),
+        [](char a, char b){ return isVowel(a) == isVowel(b); });
+
+    if (iter4 != myCha.end()) cout << *iter4; // b
+
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///count algorithms -->  assist us in counting the number of elements in a range which satisfy a certain predicate
+/*
+We can count elements (with or without a predicate) using STL algorithms.
+They return the number of elements:
 
+Num count(InpIt first, InpIt last, const T& val)
+Num count(ExePol pol, FwdIt first, FwdIt last, const T& val)
+Num count_if(InpIt first, InpIt last, UnPred pre)
+Num count_if(ExePol pol, FwdIt first, FwdIt last, UnPred pre)
+
+*/
+#include<algorithm>
+#include<cctype>
+#include<iostream>
+#include<string>
+
+int main()
+{
+    std::cout << std::endl;
+    std::string str{"abcdabAAAaefaBqeaBCQEaadsfdewAAQAaafbd"};
+    std::cout << "count: " << std::count(str.begin(), str.end(), 'a') << std::endl;
+    std::cout << "count_if: " << std::count_if(str.begin(), str.end(), [](char a){ return std::isupper(a);}); //Khodam isupper ro neveshtam
+    std::cout << std::endl;
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/// test ranges
+/*
+C++17 contains several algorithms to check whether a value or values in a range fulfill our given condition. Let's
+look at these algorithms now.
 
+The three functions std::all_of , std::any_of , and std::none_of answer the
+question of whether all, at least one, or no elements of a range satisfy the
+condition. As arguments, the functions need input iterators, a unary predicate,
+and return a boolean.
+Checks if all elements of the range satisfy the condition:
+bool all_of(InpIt first, InpIt last, UnPre pre)
+bool all_of(ExePol pol, FwdIt first, FwdIt last, UnPre pre)
+
+
+Checks if at least one element of the range satisfies the condition:
+bool any_of(InpIt first, InpIt last, UnPre pre)
+bool any_of(ExePol pol, FwdIt first, FwdIt last, UnPre pre)
+
+Checks if no element of the range satisfies the condition:
+bool none_of(InpIt first, InpIt last, UnPre pre)
+bool none_of(ExePol pol, FwdIt first, FwdIt last, UnPre pre)
+
+*/
+
+#include<algorithm>
+#include<iostream>
+#include<vector>
+
+int main()
+{
+    std::cout<< std::boolalpha<<std::endl;
+
+    auto even = [](int i){return i%2;};
+
+    std::vector<int> myVec{1 , 2 ,3,4,5,6,7,8,9};
+
+
+    std::cout<<"std::any_of: \t" <<std::any_of(myVec.begin(), myVec.end(),even) <<std::endl;
+    std::cout<<"std::all_of: \t"<<std::all_of(myVec.begin(),myVec.end(),even)<<std::endl;
+    std::cout<<"std::none_of: \t"<<std::none_of(myVec.begin(),myVec.end(),even)<<std::endl;
+
+    std::cout<<std::endl;
+
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///Compare ranges
+/*
+The functions described below allow us to check the degree of equality between ranges.
+
+With std::equal , we can compare ranges. std::lexicographical_compare and
+std::mismatch compute which range is the smallest one.
+equal : checks if both ranges are equal.
+
+
+bool equal(InpIt first1, InpIt last1, InpIt first2)
+bool equal(ExePol pol, FwdIt first1, FwdIt last1, FwdIt first2)
+bool equal(InpIt first1, InpIt last1, InpIt first2, BiPre pred)
+bool equal(ExePol pol, FwdIt first1, FwdIt last1, FwdIt first2, BiPre pred)
+bool equal(InpIt first1, InpIt last1, InpIt first2, InpIt last2)
+bool equal(ExePol pol, FwdIt first1, FwdIt last1, FwdIt first2, FwdIt last2)
+bool equal(InpIt first1, InpIt last1, InpIt first2, InpIt last2, BiPre pred)
+bool equal(ExePol pol, FwdIt first1, FwdIt last1, FwdIt first2, FwdIt last2, BiPre pred)
+
+
+lexicographical_compare : checks if the first range is smaller than the second.
+
+bool lexicographical_compare(InpIt first1, InpIt last1, InpIt first2, InpIt last2)
+bool lexicographical_compare(ExePol pol, FwdIt first1, FwdIt last1, FwdIt first2, FwdIt last2
+bool lexicographical_compare(InpIt first1, InpIt last1, InpIt first2, InpIt last2, BiPre pred
+bool lexicographical_compare(ExePol pol, FwdIt first1, FwdIt last1, FwdIt first2, FwdIt last2
+
+
+mismatch : finds the first position at which both ranges are not equal.
+
+pair<InpIt, InpIt> mismatch(InpIt first1, InpIt last1, InpIt first2)
+pair<InpIt, InpIt> mismatch(ExePol pol, FwdIt first1, FwdIt last1, FwdIt first2)
+pair<InpIt, InpIt> mismatch(InpIt first1, InpIt last1, InpIt first2, BiPre pred)
+pair<InpIt, InpIt> mismatch(ExePol pol, FwdIt first1, FwdIt last2, FwdIt first2, BiPre pred)
+pair<InpIt, InpIt> mismatch(InpIt first1, InpIt last1, InpIt first2, InpIt last2)
+pair<InpIt, InpIt> mismatch(ExePol pol, FwdIt first1, FwdIt last1, FwdIt first2, FwdIt last2)
+pair<InpIt, InpIt> mismatch(InpIt first1, InpIt last1, InpIt first2, InpIt last2, BiPre pred)
+pair<InpIt, InpIt> mismatch(ExePol pol, FwdIt first1, FwdIt last1, FwdIt first2, FwdIt last2,
+
+The algorithms take input iterators and eventually a binary predicate.
+std::mismatch returns a pair pa of input iterators as its result. pa.first holds
+an input iterator for the first element that is not equal. pa.second holds the
+corresponding input iterator for the second range. If both ranges are identical,
+we get two end iterators.
+*/
+
+#include <algorithm>
+#include<cctype>
+#include<iostream>
+#include<string>
+
+
+int main()
+{
+    std::cout<<std::boolalpha<<std::endl;
+
+
+    std::string str1{"Only For Testing Purpose."};
+    std::string str2{"only for testing purpose."};
+
+    std::cout<<"str1"<<str1<<std::endl;
+    std::cout<<"str2"<<str2<<std::endl;
+
+    std::cout<<std::endl;
+
+    std::cout<<std::equal(str1.begin(),str1.end(),str2.begin())<<"\n";
+    std::cout<<std::equal(str1.begin(),str1.end(),str2.begin()),[](char c1, char c2){return c1==c2;};
+
+
+    str1= {"Only for testing Purpose."};
+    str2= {"Only for testing purpose."};
+
+   auto pair= std::mismatch(str1.begin(), str1.end(), str2.begin());
+if ( pair.first == str1.end() ){ //end fek kunam ye done bad az element akhar bashe, doroste? ke vaghti chizi peyda nemishe yani ta oonja rafte! --> are doroste mire ye done bad az akharin element age pyda nashe! --> kolan end index e yedone bad az akhar hast
+std::cout << "str1 and str2 are equal" << std::endl;
+}
+else{
+std::cout << "str1 and str2 are different at position " << std::distance(str1.begin(), pa
+<< " with (" << *pair.first << ", " << *pair.second << ")" << std::endl;
+}
+auto pair2= std::mismatch(str1.begin(), str1.end(), str2.begin(), [](char c1, char c2){ ret //kamel kun khoodet badan
+if ( pair2.first == str1.end() ){
+std::cout << "str1 and str2 are equal" << std::endl;
+}
+else{
+std::cout << "str1 and str2 are different at position " << std::distance(str1.begin(), pa //kamel kun khodet badan
+<< " with(" << *pair2.first << ", " << *pair2.second << ")" << std::endl;
+}
+
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///search ranges
+/*
 
+Need to acquire a sub-range from any existing range? std::search solves the problem ef ciently.
+
+
+std::search      Searches for a range in another range from the beginning.
+std::find_end    Searches for a range in another range from the end.
+std::search_n    Searches for n consecutive elements in the range.
+
+All algorithms that take a forward iterator can be parametrized by a binary
+predicate and return an end iterator for the first range, if the search was not
+successful.
+
+Searches the values of the second range in the first range and returns the
+position. Starts at the beginning:
+
+FwdIt1 search(FwdIt1 first1, FwdIt1 last1, FwdIt2 first2, FwdIt2 last2)
+FwdIt1 search(ExePol pol, FwdIt1 first1, FwdIt1 last1, FwdIt2 first2, FwdIt2 last2)
+FwdIt1 search(FwdIt1 first1, FwdIt1 last1, FwdIt2 first2, FwdIt2 last2, BiPre pre)
+FwdIt1 search(ExePol pol, FwdIt1 first1, FwdIt1 last1, FwdIt2 first2, FwdIt2 last2, BiPre pre
+FwdIt1 search(FwdIt1 first, FwdIt last1, Search search)
+
+
+Searches the values of the second range in the first range and returns the
+position. Starts at the end:
+
+FwdIt1 find_end(FwdIt1 first1, FwdIt1 last1, FwdIt2 first2 FwdIt2 last2)
+FwdIt1 find_end(ExePol pol, FwdIt1 first1, FwdIt1 last1, FwdIt2 first2 FwdIt2 last2)FwdIt1 find_end(FwdIt1 first1, FwdIt1 last1, FwdIt2 first2, FwdIt2 last2, BiPre pre)
+FwdIt1 find_end(ExePol pol, FwdIt1 first1, FwdIt1 last1, FwdIt2 first2, FwdIt2 last2, BiPre p
+
+
+Searches count for consecutive values in the first range:
+
+FwdIt search_n(FwdIt first, FwdIt last, Size count, const T& value)
+FwdIt search_n(ExePol pol, FwdIt first, FwdIt last, Size count, const T& value)
+FwdIt search_n(FwdIt first, FwdIt last, Size count, const T& value, BiPre pre)
+FwdIt search_n(ExePol pol, FwdIt first, FwdIt last, Size count, const T& value, BiPre pre)
+
+The algorithm search_n is very special
+The algorithm FwdIt search_n(FwdIt first, FwdIt last, Size count,
+const T& value, BiPre pre) is very special. The binary predicate BiPre
+uses, as first argument, the values of the range and, as second argument,
+the value value .
+*/
+#include<algorithm>
+#include<array>
+#include<cmath>
+#include<iostream>
+
+
+int main(){
+    std::cout << std::endl;
+    std::array<int, 10> arr1{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    std::array<int, 5> arr2{3, 4, -5, 6, 7};
+    auto fwdIt= std::search(arr1.begin(), arr1.end(), arr2.begin(), arr2.end());
+    if (fwdIt == arr1.end()) std::cout << "arr2 not in arr1." << std::endl;
+    else{
+    std::cout << "arr2 at position " << std::distance(arr1.begin(), fwdIt) << " in arr1." <
+    }
+    
+    auto fwdIt2= std::search(arr1.begin(), arr1.end(), arr2.begin(), arr2.end(), [](int a, int //badan kamel kun
+    if (fwdIt2 == arr1.end()) std::cout << "arr2 not in arr1." << std::endl;
+    else{
+    std::cout << "arr2 at position " << std::distance(arr1.begin(), fwdIt2)
+    }
+    std::cout << std::endl;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///copy elements and ranges
+/*
+In this lesson, we'll learn how to perform various copy operations on a given range.
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+We can copy ranges forward with std::copy , backward with
+std::copy_backward and conditionally with std::copy_if . To copy n elements,
+we can use std::copy_n .
 
 
+copy : copies the range.
+
+
+OutIt copy(InpIt first, InpIt last, OutIt result)
+FwdIt2 copy(ExePol pol, FwdIt first, FwdIt last, FowdIt2 result)
+
+
+copy_n : copies n elements.
+
+OutIt copy_n(InpIt first, Size n, OutIt result)
+FwdIt2 copy_n(ExePol pol, FwdIt first, Size n, FwdIt2 result)
+
+copy_if : Copies the elements dependent on the predicate pre .
+OutIt copy_if(InpIt first, InpIt last, OutIt result, UnPre pre)
+FwdIt2 copy_if(ExePol pol, FwdIt first, FwdIt last, FwdIt2 result, UnPre pre)
+
+
+copy_backward : Copies the range backward.
+BiIt copy_backward(BiIt first, BiIt last, BiIt result)
+
+
+The algorithms need input iterators to copy their elements to result . They
+return an end iterator to the destination range.
+*/
+
+#include<algorithm>
+#include<iostream>
+#include<string>
+#include<vector>
+
+
+int main()
+{
+    std::cout<< std::endl;
+
+    std::vector<int> myVec{0,1,2,3,4,5,6,7,9};
+    std::vector<int> myVec2(10);
+
+    std::copy_if(myVec.begin(),myVec.end(),myVec2.begin()+3,[](int a){return a%2;}); //if the a%2 returns 1 then its true and it copies the input but if a%2=0 then it doesn't copy the input
+    for(auto v: myVec2) std::cout<<v<<" ";
+
+    std::cout<<"\n\n";
+    std::string str{"Iamstring1"};
+    std::string str2{"Hellostring---------------------2"};
+    std::cout << str2 << std::endl;
+    std::copy_backward(str.begin(), str.end(), str2.end());
+    std::cout << str2 << std::endl;
+    std::cout << std::endl;
+    std::cout << str << std::endl;
+    std::copy_backward(str.begin(), str.begin() + 5, str.end()); //copy starts from the end of str and then one by one it steps backward and copies each char
+    std::cout << str << std::endl;
+    std::cout << std::endl;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
