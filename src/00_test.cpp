@@ -1,30 +1,27 @@
 #include<iostream>
-#include<unordered_set>
+#include<vector>
+#include<algorithm>
 
-void getInfo(const std::unordered_set<int>& hash)
-{
-        std::cout<<hash.bucket_count()<<"\n";
-        std::cout<<hash.load_factor()<<"\n";
-}
+
+class Mean{
+        public:
+                void operator()(int v)
+                {
+                        num++;
+                        mean = (mean*(num-1) + v)/ num;
+                }       
+                void printMean() const {std::cout<<mean<<"\n";}
+        private:
+                int sum{0};
+                int num{0};
+                double mean;
+};      
+
+
 
 int main()
 {
-        int arr[100];
-        for (int i = 0 ; i<100 ; i++)
-                arr[i] = (rand() % 100) + 1;
-        std::cout<<arr<< " "<<sizeof(arr) <<" "<<sizeof(int)<<"\n";
-        std::unordered_set<int> hash(arr,arr+sizeof(arr)/sizeof(int));
-
-        std::cout<<hash.max_load_factor()<<"\n";
-
-        getInfo(hash);
-        hash.insert(500);
-        std::cout<<hash.bucket(500)<<"\n";
-
-        getInfo(hash);
-        std::cout<<"\n";
-        hash.rehash(500);
-        getInfo(hash);
-        std::cout<<hash.bucket(500);
-        std::cout<<"\n";
+        std::vector<int> myVec {1,2,3,4,5,6,7,8,9,10};
+        auto f = std::for_each(myVec.begin(),myVec.end(),Mean());
+        f.printMean();
 }

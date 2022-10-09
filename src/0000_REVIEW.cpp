@@ -1463,10 +1463,261 @@ int main(){
     std::cout << std::endl;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///ALGORITHM C++17
+/*
+! The Standard Template Library has a large number of algorithms that work
+! with containers and their elements. As the algorithms are function templates,
+! they are independent of the type of elements in the container. The glue
+! between the containers and algorithms is the iterators. If our custom
+! container supports the interface of an STL container, we can apply the
+! algorithms to our container.
+*/
+
+
+#include<iostream>
+#include<algorithm>
+#include<deque>
+#include<list>
+#include<string>
+#include<vector>
+
+
+
+template <typename Cont, typename T> //ta vase container haye mokhtalef az func paeen estefade kunim ---> chun ro container haye stl mishe alg haye yeksan ro use kard.
+void doTheSame(Cont cont,T t)
+{
+    for(const auto c: cont) std::cout<< c <<" ";
+    
+    std::cout<< std::endl;
+    std::cout<<cont.size()<<std::endl;
+    std::reverse(cont.begin(),cont.end());
+    
+    for(const auto c: cont) std::cout<< c<<" ";
+    std::cout<<"\n";
+    std::reverse(cont.begin(),cont.end());
+    
+    for(const auto c: cont) std::cout<< c <<" ";
+    std::cout<<"\n";
+    auto It = std::find(cont.begin(),cont.end(),t);
+    std::reverse(It, cont.end());
+    
+    for(const auto c: cont) std::cout<< c <<" ";
+}
+
+int main()
+{
+    std::vector<int> myVec{1,2,3,4,5,6,7,8,9,10};
+    std::deque<std::string> myDeq({"A","B","C","D","E","F","G","H","I"});
+    std::list<char> myList({'a','b','c','d','e','f','g','h'});
+
+    doTheSame(myVec,5);
+    std::cout<<"\n\n";
+    // 1 2 3 4 5 6 7 8 9 10
+    // 10
+    // 10 9 8 7 6 5 4 3 2 1
+    // 1 2 3 4 5 6 7 8 9 10
+    // 1 2 3 4 10 9 8 7 6 5
+
+
+    doTheSame(myDeq, "D");
+    std::cout << "\n\n";
+    // A B C D E F G H I
+    // 9
+    // I H G F E D C B A
+    // A B C D E F G H I
+    // A B C I H G F E D
+
+    doTheSame(myList, 'd');
+    std::cout << "\n\n";
+    // a b c d e f g h
+    // 8
+    // h g f e d c b a
+    // a b c d e f g h
+    // a b c h g f e d
+}
+
+/*
+Headers #
+! The algorithms are defined in various headers:
+<algorithm>  Contains the general algorithms.
+<numeric>    Contains numeric algorithms.
+<functional>     Predefined function objects and function adapters.
+
+Name Conventions #
+! Many of the algorithms have the name suffix _if and _copy .
+_if     The algorithm can be parametrized by a predicate.
+_copy   The algorithm copies its elements in another range.
+
+! Algorithms like auto num = std::count(InpIt first, InpIt last, const T&
+! val) return the number of elements that are equal to val in the given range
+! [first, last) . num is of type iterator_traits<InpIt>::difference_type . This
+! means we have the guarantee that num is sufficient to hold the result, and
+! because of the automatic return type deduction with auto , the compiler will
+! give us the right types.
+
+! If the container uses an additional range, it has to be valid
+! The algorithm std::copy_if uses an iterator for the beginning of its
+! destination range. This destination range has to be valid.
+
+
+
+! Naming conventions for the algorithms
+! We use a few naming conventions for the type of arguments and the
+! return type of the algorithms to make them easier to read.
+
+Name      Description
+InIt     [Input iterator]
+FwdIt    [Forward iterator]
+BiIt     [Bidirectional iterator]
+UnFunc   [Unary callable]
+BiFunc   [Binary callable]
+UnPre    [Unary predicate]
+BiPre    [Binary predicate]
+Search   The searcher encapsulates the search algorithm.
+ValType  From the input range automatically deduced value type.
+ExePol   [Execution policy]
+
+*/
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///for_each --> std::for_each applies a unary callable to each element of its range. The range is given by the input iterators.
+/*
+UnFunc std::for_each(InpIt first , InpIt second , UnFunc func)
+void std::for_each(ExePol pol , FwdIt first , FwdIt second , UnFunc func)
+
+std::for_each , when used without an explicit execution policy is a special
+algorithm because it returns its callable argument. If we invoke std::for_each
+with a function object, we can store the result of the function call directly in
+the function object.
+
+InpIt std::for_each_n(InpIt first, Size n, UnFunc func)
+FwdIt std::for_each_n(ExePol pol, FwdIt first, Size n, UnFunc func)
+
+std::for_each_n is new with C++17 and applies a unary callable to the first n
+elements of its range. The range is given by an input iterator and a size.
+*/
+
+#include<array>
+#include<algorithm>
+#include<iostream>
+#include<vector>
 
 
+template<typename T>
+class ContainerInfo{
+    public:
+        void operator()(T t){
+            num++;
+            sum+= t;
+        }
+
+        int getSum() const{
+            return sum;
+        }
+
+        int getSize() const{return num;}
+
+        double getMean() const{
+            return static_cast<double>(sum) / static_cast<double>(num);
+        }
+
+    private:
+        T sum{0};
+        int num{0};
+        
+};
+//! deghat kun ke for_each hamoon callable khodesho barmigardoone yani dar khate auto vecInfo ,vecInfo hamon object ee az ContainerInfo hast
+int main()
+{
+    std::cout << std::endl;
+    std::vector<double> myVec{1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9};
+    auto vecInfo= std::for_each(myVec.begin(), myVec.end(), ContainerInfo<double>()); //fek mikunam ContainerInfo<double>() operator overload ee bashe ke bala neveshtim//dar vaghe class bala ye function object hast ke dadim be for_each
+    std::cout << "vecInfo.getSum(): " << vecInfo.getSum() << std::endl;
+    std::cout << "vecInfo.getSize(): " << vecInfo.getSize() << std::endl;
+    std::cout << "vecInfo.getMean(): " << vecInfo.getMean() << std::endl;
+    std::cout << std::endl;
+    std::array<int, 100> myArr{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    auto arrInfo= std::for_each(myArr.begin(), myArr.end(), ContainerInfo<int>());
+    std::cout << "arrInfo.getSum(): " << arrInfo.getSum() << std::endl;
+    std::cout << "arrInfo.getSize(): " << arrInfo.getSize() << std::endl;
+    std::cout << "arrInfo.getMean(): " << arrInfo.getMean() << std::endl;
+    std::cout << std::endl;
+}
+
+
+
+//Problem statement #
+//Calculate the mean of an std::vector and an std::array with std::for_each .
+
+//javabe khodam:
+#include<iostream>
+#include<vector>
+#include<algorithm>
+
+
+class Mean{
+        public:
+                void operator()(int v)
+                {
+                        num++;
+                        mean = (mean*(num-1) + v)/ num;
+                }       
+                void printMean() const {std::cout<<mean<<"\n";}
+        private:
+                int sum{0};
+                int num{0};
+                double mean;
+};      
+
+
+
+int main()
+{
+        std::vector<int> myVec {1,2,3,4,5,6,7,8,9,10};
+        auto f = std::for_each(myVec.begin(),myVec.end(),Mean());
+        f.printMean();
+}
+
+//javabe pdf:
+
+#include<array>
+#include<algorithm>
+#include<iostream>
+#include<string>
+#include<vector>
+
+template <typename T>
+class ContainerInfo{
+    public:
+        void operator()(T t){
+            size++;
+            sum += t;
+        }
+        int getSum() const{
+            return sum;
+        }
+        int getSize() const{ return size; }
+        double getMean() const{
+            return static_cast<double>(sum)/static_cast<double>(size);
+        }
+    private:
+        T sum{0};
+        int size{0};
+};
+int main(){
+    std::cout << std::endl;
+    std::vector<double> myVec{1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9};auto vecInfo = std::for_each(myVec.begin(), myVec.end(), ContainerInfo<double>());
+    std::cout << "vecInfo.getSum(): " << vecInfo.getSum() << std::endl;
+    std::cout << "vecInfo.getSize(): " << vecInfo.getSize() << std::endl;
+    std::cout << "vecInfo.getMean(): " << vecInfo.getMean() << std::endl;
+    std::cout << std::endl;
+    std::array<int, 100> myArr{1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    auto arrInfo    = std::for_each(myArr.begin(), myArr.end(), ContainerInfo<int>());
+    std::cout <<"arrInfo.getSum(): " << arrInfo.getSum() << std::endl;
+    std::cout <<"arrInfo.getSize(): " << arrInfo.getSize() << std::endl;
+    std::cout <<"arrInfo.getMean(): " << arrInfo.getMean() << std::endl;
+    std::cout << std::endl;
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
