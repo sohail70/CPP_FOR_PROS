@@ -92,3 +92,12 @@ Lock(), and wait() are blocking actions:
 Sharing is not caring
     Avoid and minimize shared varibales as much as you can 
 */
+
+
+
+
+/*
+! good explanation:
+
+https://stackoverflow.com/questions/51556374/how-to-decide-how-many-mutexes-do-i-require
+*/

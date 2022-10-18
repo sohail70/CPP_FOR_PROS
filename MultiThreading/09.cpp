@@ -24,11 +24,11 @@ void Consumer(){
     int data = 0;
     for(int i = 0 ;i<100 ; i++)
     {
-        std::unique_lock<std::mutex> ul(g_mutex);
+        std::unique_lock<std::mutex> ul(g_mutex); //for creating a critical section in consumer func
         //! start of critical section
         // if blocked, ul.unlock() is automatically called. -->//! vase hamin ul ro be onvan vorodi be func e wait dadim --> pas age block beshe wait unlock mikune mutex ro ta producer betone access kune be shared memory
         // if unblocked, ul.lock() is automatically called. --> //! lock mikune ta consumer betone g_ready va data ro check kune
-        g_cv.wait(ul,[](){return g_ready;}); //waits for the notification and also it waits till g_ready is true
+        g_cv.wait(ul,[](){return g_ready;}); //waits for the notification from producer and also it waits till g_ready is true
         //sample data
         data = g_data;
         std::cout<<"data: "<<data<<"\n";
@@ -37,7 +37,7 @@ void Consumer(){
         ul.unlock();
         g_cv.notify_one();
         ConsumeData(data);
-        ul.lock();
+        ul.lock(); //! is this lock necessary??!!
     }
 
 }
@@ -47,7 +47,7 @@ void Consumer(){
 void producer()
 {
     for(int i = 0 ;i<100;i++){ //producer 100 ta data tolid mikune
-        std::unique_lock<std::mutex> ul(g_mutex);
+        std::unique_lock<std::mutex> ul(g_mutex); //for creating a critical section in producer func
         //! start of critical section
         // Produce data
         g_data = GenRandomValue();
@@ -57,8 +57,9 @@ void producer()
         //! end of critical section
         ul.unlock(); //! khoroj az critical section
         g_cv.notify_one(); //! lozomi nadare toye crtical section bashi vase notify
-        ul.lock();
+        ul.lock(); //! inja lock gozashte 
         g_cv.wait(ul,[](){return g_ready == false;}); //agar consumer g_ready ro false kune va consumer notify_one ro ham befreste in wait inja rad mishe!
+        // wait unlocks the mutex passed in.
     }
 }
 
@@ -105,7 +106,7 @@ void t2(){
 */
 
 /*
-soal --> what if we only want to notify a specific thread ? faghat notify_one va ll ro darim
+soal --> what if we only want to notify a specific thread ? faghat notify_one va ll ro darim  -->If you want to notify a specific thread, use a separate std::condition_variable for it. Do not use that std::condition_variable for other threads.
 soal 2 --> how to break the infinte loop in producre and consumer? producer bege be consumer ke dg data nadaram 
 
 */
